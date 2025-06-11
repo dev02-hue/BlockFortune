@@ -141,26 +141,27 @@ const HeroSection = () => {
           </div>
 
           {/* Image */}
-          <div className="w-full lg:w-1/2 flex justify-center relative h-80 md:h-96 lg:h-[500px]">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={`image-${slide.id}`}
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -50 }}
-                transition={{ duration: 0.5 }}
-                className="absolute inset-0"
-              >
-                <Image
-                  src={slide.image}
-                  alt={slide.title}
-                  fill
-                  className="object-contain"
-                  priority
-                />
-              </motion.div>
-            </AnimatePresence>
-          </div>
+          <div className="w-full lg:w-1/2 flex justify-center relative h-[400px] md:h-[500px] lg:h-[600px]">
+  <AnimatePresence mode="wait">
+    <motion.div
+      key={`image-${slide.id}`}
+      initial={{ opacity: 0, x: 50 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -50 }}
+      transition={{ duration: 0.5 }}
+      className="absolute inset-0"
+    >
+      <Image
+        src={slide.image}
+        alt={slide.title}
+        fill
+        className="object-contain"
+        priority
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
+      />
+    </motion.div>
+  </AnimatePresence>
+</div>
         </div>
       </div>
 
