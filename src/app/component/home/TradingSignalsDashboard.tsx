@@ -4,6 +4,13 @@ import { FiClock, FiRefreshCw, FiBarChart2, FiDollarSign } from "react-icons/fi"
 import { FaBitcoin, FaEthereum } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { ReactElement } from "react";
+import dynamic from 'next/dynamic';
+
+// Dynamic import for TradingView widgets to ensure they only load on client side
+const TradingViewWidget = dynamic(
+  () => import('./TradingViewWidget'),
+  { ssr: false }
+);
 
 // Define types for the trading signal
 interface TradingSignal {
@@ -29,6 +36,8 @@ interface MarketData {
   total_volume: { usd: number };
   market_cap_percentage: { btc: number; eth: number };
 }
+
+
 
 // Mock signals data structure (replace with actual API call)
 const mockSignals: TradingSignal[] = [
@@ -68,6 +77,14 @@ const TradingSignalsDashboard = () => {
   const [marketData, setMarketData] = useState<MarketData | null>(null);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [error, setError] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+    // Only access document after component mounts (client-side)
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    setTheme(isDark ? 'dark' : 'light');
+  }, []);
 
   // Fetch trading signals
   useEffect(() => {
@@ -96,10 +113,12 @@ const TradingSignalsDashboard = () => {
       }
     };
   
-    fetchSignals();
-    const interval = setInterval(fetchSignals, 60000); // Refresh every minute
-    return () => clearInterval(interval);
-  }, [activeTab]);
+    if (isClient) {
+      fetchSignals();
+      const interval = setInterval(fetchSignals, 60000); // Refresh every minute
+      return () => clearInterval(interval);
+    }
+  }, [activeTab, isClient]);
 
   // Fetch additional market data from CoinGecko API
   useEffect(() => {
@@ -136,13 +155,6 @@ const TradingSignalsDashboard = () => {
     fetchMarketData();
     const interval = setInterval(fetchMarketData, 300000); // Refresh every 5 minutes
     return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    if (typeof document !== 'undefined') {
-      const isDark = document.documentElement.classList.contains('dark');
-      setTheme(isDark ? 'dark' : 'light');
-    }
   }, []);
 
   // Format currency
@@ -250,36 +262,35 @@ const TradingSignalsDashboard = () => {
       {/* Main Content */}
       <div className="p-4">
         {/* TradingView Signal Widget */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          viewport={{ once: true }}
-          className="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
-        >
-          <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-            <h3 className="font-semibold text-gray-800 dark:text-gray-200">TradingView Signals</h3>
-            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-              <FiRefreshCw className="mr-1" /> Live
+        {isClient && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+            className="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
+          >
+            <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+              <h3 className="font-semibold text-gray-800 dark:text-gray-200">TradingView Signals</h3>
+              <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                <FiRefreshCw className="mr-1" /> Live
+              </div>
             </div>
-          </div>
-          <div className="h-96">
-            <iframe
-              scrolling="no"
-              allowTransparency={true}
-              frameBorder="0"
-              src={`https://www.tradingview.com/embed-widget/symbol-overview/?locale=en#%7B%22symbols%22%3A%5B%5B%22BTCUSD%22%2C%22BTCUSD%7C1D%22%5D%2C%5B%22ETHUSD%22%2C%22ETHUSD%7C1D%22%5D%2C%5B%22SOLUSD%22%2C%22SOLUSD%7C1D%22%5D%2C%5B%22BNBUSD%22%2C%22BNBUSD%7C1D%22%5D%2C%5B%22XRPUSD%22%2C%22XRPUSD%7C1D%22%5D%5D%2C%22chartOnly%22%3Afalse%2C%22width%22%3A%22100%25%22%2C%22height%22%3A%22100%25%22%2C%22colorTheme%22%3A%22${theme}%22%2C%22autosize%22%3Atrue%2C%22showVolume%22%3Afalse%2C%22showMA%22%3Afalse%2C%22hideDateRanges%22%3Afalse%2C%22hideMarketStatus%22%3Afalse%2C%22hideSymbolLogo%22%3Afalse%2C%22scalePosition%22%3A%22right%22%2C%22scaleMode%22%3A%22Normal%22%2C%22fontFamily%22%3A%22-apple-system%2C%20BlinkMacSystemFont%2C%20Trebuchet%20MS%2C%20Roboto%2C%20Ubuntu%2C%20sans-serif%22%2C%22fontSize%22%3A%2210%22%2C%22valuesTracking%22%3A%221%22%2C%22changeMode%22%3A%22price-and-percent%22%2C%22chartType%22%3A%22area%22%2C%22maLineColor%22%3A%22%232962FF%22%2C%22maLineWidth%22%3A1%2C%22maLength%22%3A9%2C%22lineWidth%22%3A2%2C%22lineType%22%3A0%7D`}
-              title="TradingView signal widget"
-              style={{
-                userSelect: 'none',
-                boxSizing: 'border-box',
-                display: 'block',
-                height: '100%',
-                width: '100%',
-              }}
-            ></iframe>
-          </div>
-        </motion.div>
+            <div className="h-96">
+              <TradingViewWidget 
+                widgetType="symbol-overview"
+                theme={theme}
+                symbols={[
+                  ["BTCUSD", "BTCUSD|1D"],
+                  ["ETHUSD", "ETHUSD|1D"],
+                  ["SOLUSD", "SOLUSD|1D"],
+                  ["BNBUSD", "BNBUSD|1D"],
+                  ["XRPUSD", "XRPUSD|1D"]
+                ]}
+              />
+            </div>
+          </motion.div>
+        )}
 
         {/* Signal Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
@@ -373,36 +384,28 @@ const TradingSignalsDashboard = () => {
         </div>
 
         {/* Additional Market Data */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          viewport={{ once: true }}
-          className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
-        >
-          <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-            <h3 className="font-semibold text-gray-800 dark:text-gray-200">Market Analysis</h3>
-            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-              <FiRefreshCw className="mr-1" /> Updated in real-time
+        {isClient && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            viewport={{ once: true }}
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
+          >
+            <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+              <h3 className="font-semibold text-gray-800 dark:text-gray-200">Market Analysis</h3>
+              <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                <FiRefreshCw className="mr-1" /> Updated in real-time
+              </div>
             </div>
-          </div>
-          <div className="h-64">
-            <iframe 
-              scrolling="no"
-              allowTransparency={true}
-              frameBorder="0"
-              src={`https://www.tradingview.com/embed-widget/technical-analysis/?locale=en#%7B%22interval%22%3A%221D%22%2C%22width%22%3A%22100%25%22%2C%22height%22%3A%22100%25%22%2C%22isTransparent%22%3Atrue%2C%22utm_source%22%3A%22blockfortune.com%22%2C%22utm_medium%22%3A%22widget%22%2C%22utm_campaign%22%3A%22technical-analysis%22%2C%22colorTheme%22%3A%22${theme}%22%7D`}
-              title="Market sentiment widget"
-              style={{ 
-                userSelect: 'none', 
-                boxSizing: 'border-box', 
-                display: 'block', 
-                height: '100%', 
-                width: '100%' 
-              }}
-            ></iframe>
-          </div>
-        </motion.div>
+            <div className="h-64">
+              <TradingViewWidget 
+                widgetType="technical-analysis"
+                theme={theme}
+              />
+            </div>
+          </motion.div>
+        )}
       </div>
 
       {/* Footer */}
