@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface TradingViewWidgetProps {
   widgetType: 'symbol-overview' | 'technical-analysis' | 'ticker' | 'market-overview';
@@ -8,8 +8,15 @@ interface TradingViewWidgetProps {
 }
 
 const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ widgetType, theme, symbols }) => {
+  const [isClient, setIsClient] = useState(false);
+
   useEffect(() => {
-    // Load TradingView script
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
+
     const script = document.createElement('script');
     script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
     script.async = true;
@@ -39,7 +46,7 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ widgetType, theme
         container.removeChild(script);
       }
     };
-  }, [widgetType, theme, symbols]);
+  }, [widgetType, theme, symbols, isClient]);
 
   return (
     <div 

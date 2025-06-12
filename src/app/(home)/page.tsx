@@ -5,7 +5,7 @@ import HeroSection from "../component/home/HeroSection";
 import InvestmentPlans from "../component/home/InvestmentPlans";
 import TradingDashboard from "../component/home/TradingDashboard";
 import TradingFeatures from "../component/home/TradingFeatures";
-// import TradingSignalsDashboard from "../component/home/TradingSignalsDashboard";
+import TradingSignalsDashboard from "../component/home/TradingSignalsDashboard";
 
  
  
@@ -19,7 +19,7 @@ export default function Home() {
       <TradingDashboard />
       <CryptoTable />
       <InvestmentPlans />
-      {/* <TradingSignalsDashboard /> */}
+      <TradingSignalsDashboard />
     </div>
   );
 }

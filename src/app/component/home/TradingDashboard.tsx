@@ -4,7 +4,6 @@ import { FiExternalLink, FiRefreshCw, FiTrendingUp, FiTrendingDown } from "react
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { useState, useEffect } from 'react';
 
-// Define types for your chart data
 interface ChartDataPoint {
   name: string;
   price: number;
@@ -12,11 +11,24 @@ interface ChartDataPoint {
 }
 
 const TradingDashboard = () => {
-  // Properly typed state with ChartDataPoint array
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [activeTab, setActiveTab] = useState<'forex' | 'commodities'>('forex');
+  const [widgetUrls, setWidgetUrls] = useState({
+    forex: '',
+    commodities: ''
+  });
 
-  // Format currency with proper typing
+  useEffect(() => {
+    // This effect runs only on the client side
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    const theme = isDarkMode ? 'dark' : 'light';
+    
+    setWidgetUrls({
+      forex: `https://www.tradingview-widget.com/embed-widget/single-quote/?locale=en#%7B%22symbol%22%3A%22FX%3AAUDUSD%22%2C%22width%22%3A%22100%25%22%2C%22height%22%3A100%2C%22colorTheme%22%3A%22${theme}%22%2C%22isTransparent%22%3Atrue%2C%22utm_source%22%3A%22blockfortune.com%22%2C%22utm_medium%22%3A%22widget%22%2C%22utm_campaign%22%3A%22single-quote%22%7D`,
+      commodities: `https://www.tradingview-widget.com/embed-widget/single-quote/?locale=en#%7B%22symbol%22%3A%22TVC%3AUSOIL%22%2C%22width%22%3A%22100%25%22%2C%22height%22%3A100%2C%22colorTheme%22%3A%22${theme}%22%2C%22isTransparent%22%3Atrue%2C%22utm_source%22%3A%22blockfortune.com%22%2C%22utm_medium%22%3A%22widget%22%2C%22utm_campaign%22%3A%22single-quote%22%7D`
+    });
+  }, []);
+
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -27,7 +39,6 @@ const TradingDashboard = () => {
   };
 
   useEffect(() => {
-    // Simulate API fetch with proper typing
     const fetchData = () => {
       const data: ChartDataPoint[] = Array.from({ length: 30 }, (_, i) => ({
         name: `Day ${i + 1}`,
@@ -38,7 +49,7 @@ const TradingDashboard = () => {
     };
 
     fetchData();
-    const interval = setInterval(fetchData, 30000); // Refresh every 30 seconds
+    const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
   }, [activeTab]);
 
@@ -52,7 +63,6 @@ const TradingDashboard = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border-b border-gray-200 dark:border-gray-700">
         <div>
-          
           <h2 className="text-sm text-gray-500 dark:text-gray-400">Real-time trading data</h2>
         </div>
         <div className="flex space-x-2 mt-2 sm:mt-0">
@@ -221,14 +231,16 @@ const TradingDashboard = () => {
               </div>
             </div>
             <div className="h-64">
-              <iframe 
-                scrolling="no"
-                allowTransparency={true}
-                frameBorder="0"
-                src={`https://www.tradingview-widget.com/embed-widget/single-quote/?locale=en#%7B%22symbol%22%3A%22FX%3AAUDUSD%22%2C%22width%22%3A%22100%25%22%2C%22height%22%3A100%2C%22colorTheme%22%3A%22${document.documentElement.classList.contains('dark') ? 'dark' : 'light'}%22%2C%22isTransparent%22%3Atrue%2C%22utm_source%22%3A%22blockfortune.com%22%2C%22utm_medium%22%3A%22widget%22%2C%22utm_campaign%22%3A%22single-quote%22%7D`}
-                title="AUD/USD TradingView widget"
-                style={{ userSelect: 'none', boxSizing: 'border-box', display: 'block', height: '100%', width: '100%' }}
-              ></iframe>
+              {widgetUrls.forex && (
+                <iframe 
+                  scrolling="no"
+                  allowTransparency={true}
+                  frameBorder="0"
+                  src={widgetUrls.forex}
+                  title="AUD/USD TradingView widget"
+                  style={{ userSelect: 'none', boxSizing: 'border-box', display: 'block', height: '100%', width: '100%' }}
+                ></iframe>
+              )}
             </div>
           </motion.div>
 
@@ -247,18 +259,19 @@ const TradingDashboard = () => {
               </div>
             </div>
             <div className="h-64">
-              <iframe 
-                scrolling="no"
-                allowTransparency={true}
-                frameBorder="0"
-                src={`https://www.tradingview-widget.com/embed-widget/single-quote/?locale=en#%7B%22symbol%22%3A%22TVC%3AUSOIL%22%2C%22width%22%3A%22100%25%22%2C%22height%22%3A100%2C%22colorTheme%22%3A%22${document.documentElement.classList.contains('dark') ? 'dark' : 'light'}%22%2C%22isTransparent%22%3Atrue%2C%22utm_source%22%3A%22blockfortune.com%22%2C%22utm_medium%22%3A%22widget%22%2C%22utm_campaign%22%3A%22single-quote%22%7D`}
-                title="Crude Oil TradingView widget"
-                style={{ userSelect: 'none', boxSizing: 'border-box', display: 'block', height: '100%', width: '100%' }}
-              ></iframe>
+              {widgetUrls.commodities && (
+                <iframe 
+                  scrolling="no"
+                  allowTransparency={true}
+                  frameBorder="0"
+                  src={widgetUrls.commodities}
+                  title="Crude Oil TradingView widget"
+                  style={{ userSelect: 'none', boxSizing: 'border-box', display: 'block', height: '100%', width: '100%' }}
+                ></iframe>
+              )}
             </div>
           </motion.div>
         </div>
-
       </div>
     </motion.div>
   );

@@ -37,8 +37,6 @@ interface MarketData {
   market_cap_percentage: { btc: number; eth: number };
 }
 
-
-
 // Mock signals data structure (replace with actual API call)
 const mockSignals: TradingSignal[] = [
   {
@@ -406,13 +404,7 @@ const TradingSignalsDashboard = () => {
             </div>
           </motion.div>
         )}
-      </div>
-
-      {/* Footer */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700 text-center text-sm text-gray-500 dark:text-gray-400">
-        <p>Signals refresh every 60 seconds. Past performance is not indicative of future results.</p>
-        <p className="mt-1">© {new Date().getFullYear()} BlockFortune. All rights reserved.</p>
-      </div>
+      </div>  
     </motion.div>
   );
 };
