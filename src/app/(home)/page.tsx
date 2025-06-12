@@ -1,6 +1,7 @@
 import CryptoCurrencyTicker from "../component/home/CryptoCurrencyTicker";
 import CryptoTable from "../component/home/CryptoTable";
 import EnhancedStatsDashboard from "../component/home/EnhancedStatsDashboard";
+import FAQComponent from "../component/home/FAQComponent";
 import HeroSection from "../component/home/HeroSection";
 import InvestmentPlans from "../component/home/InvestmentPlans";
 import TradingDashboard from "../component/home/TradingDashboard";
@@ -20,6 +21,7 @@ export default function Home() {
       <CryptoTable />
       <InvestmentPlans />
       <TradingSignalsDashboard />
+      <FAQComponent />
     </div>
   );
 }
