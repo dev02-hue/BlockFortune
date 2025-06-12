@@ -2,8 +2,23 @@
 
 import { motion } from 'framer-motion';
 import { FiArrowRight, FiCheck, FiUsers, FiTrendingUp, FiShield, FiGlobe } from 'react-icons/fi';
+import { useTheme } from 'next-themes';
+import { useEffect, useState } from 'react';
 
-const AboutPage = ({ darkMode }: { darkMode: boolean }) => {
+const AboutPage = () => {
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null; // or return a loading skeleton
+  }
+
+  const darkMode = theme === 'dark';
+
   const successStories = [
     {
       name: "Michael T.",
