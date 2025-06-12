@@ -2,6 +2,7 @@
 import { motion } from "framer-motion";
 import { FiTrendingUp, FiDollarSign, FiUsers, FiActivity, FiShield, FiAward, FiGlobe, FiPieChart } from "react-icons/fi";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
 
@@ -282,9 +283,15 @@ const [cryptoData, setCryptoData] = useState<any[]>([]);
                         >
                           <td className="px-4 py-4 whitespace-nowrap">
                             <div className="flex items-center">
-                              <div className="flex-shrink-0 h-8 w-8 mr-3">
-                                <img src={asset.image} alt={asset.name} className="h-8 w-8 rounded-full" />
-                              </div>
+                            <div className="flex-shrink-0 h-8 w-8 mr-3 relative">
+  <Image
+    src={asset.image}
+    alt={asset.name}
+    width={32}
+    height={32}
+    className="rounded-full object-cover"
+  />
+</div>
                               <div>
                                 <div className="font-medium text-gray-900 dark:text-white">{asset.name}</div>
                                 <div className="text-gray-500 dark:text-gray-400 text-sm">{asset.symbol.toUpperCase()}</div>
