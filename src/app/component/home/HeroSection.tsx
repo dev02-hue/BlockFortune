@@ -14,7 +14,7 @@ const slides = [
     image: "/image20.webp",
     buttonColor: "bg-blue-500 hover:bg-blue-600",
     textColor: "text-blue-500",
-    ctaLink: "/login",
+    ctaLink: "/signup",
     learnMoreLink: "/about"
   },
   {
@@ -24,7 +24,7 @@ const slides = [
     image: "/image21.webp",
     buttonColor: "bg-purple-500 hover:bg-purple-600",
     textColor: "text-purple-500",
-    ctaLink: "/login",
+    ctaLink: "/signup",
     learnMoreLink: "/security"
   },
   {
@@ -34,7 +34,7 @@ const slides = [
     image: "/image22.webp",
     buttonColor: "bg-emerald-500 hover:bg-emerald-600",
     textColor: "text-emerald-500",
-    ctaLink: "/login",
+    ctaLink: "/signup",
     learnMoreLink: "/analytics"
   },
 ];
