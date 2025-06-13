@@ -205,11 +205,17 @@ export async function signUp({
 }
 
 export async function signIn({ username, password }: SignInInput) {
+  console.log('SignIn function called with username:', username)
   try {
     // 1. Validate input
-    if (!username || !password) return { error: 'Username and password are required' }
+    console.log('Validating input...')
+    if (!username || !password) {
+      console.log('Validation failed: username or password missing')
+      return { error: 'Username and password are required' }
+    }
 
     // 2. Get user's email from profile
+    console.log('Fetching user profile for username:', username)
     const { data: profile, error: profileError } = await supabase
       .from('blockfortuneprofile')
       .select('email')
@@ -217,10 +223,13 @@ export async function signIn({ username, password }: SignInInput) {
       .single()
 
     if (profileError || !profile) {
+      console.log('Profile error:', profileError?.message || 'No profile found')
       return { error: 'Invalid username or password' }
     }
+    console.log('Profile found with email:', profile.email)
 
     // 3. Attempt authentication
+    console.log('Attempting authentication with email:', profile.email)
     const { data, error } = await supabase.auth.signInWithPassword({
       email: profile.email,
       password,
@@ -230,19 +239,27 @@ export async function signIn({ username, password }: SignInInput) {
       console.error('Authentication failed:', error.message)
       return { error: 'Invalid username or password' }
     }
+    console.log('Authentication successful')
 
     // 4. Handle session
+    console.log('Processing session data...')
     const sessionToken = data.session?.access_token
     const refreshToken = data.session?.refresh_token
     const userId = data.user?.id
 
     if (!sessionToken || !refreshToken || !userId) {
-      console.error('Incomplete session data')
+      console.error('Incomplete session data:', {
+        hasSessionToken: !!sessionToken,
+        hasRefreshToken: !!refreshToken,
+        hasUserId: !!userId
+      })
       return { error: 'Failed to create session' }
     }
+    console.log('Session data complete:', { userId })
 
     // 5. Set cookies
-    const cookieStore =await cookies()
+    console.log('Setting cookies...')
+    const cookieStore = await cookies()
     const oneYear = 31536000 // 1 year in seconds
 
     cookieStore.set('sb-access-token', sessionToken, {
@@ -276,6 +293,9 @@ export async function signIn({ username, password }: SignInInput) {
       path: '/',
       sameSite: 'lax',
     })
+
+    console.log('Cookies set successfully')
+    console.log('Login completed successfully for user:', username)
 
     return {
       user: data.user,

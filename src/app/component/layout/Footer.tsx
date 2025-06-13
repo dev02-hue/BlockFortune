@@ -106,7 +106,7 @@ const Footer = ({ darkMode }: { darkMode: boolean }) => {
               </li>
               <li className="flex items-start">
                 <FiPhone className={`mt-1 mr-3 flex-shrink-0 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`} />
-                <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>+1 (555) 123-4567</span>
+                <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>+1 (848) 316-8766</span>
               </li>
               <li className="flex items-start">
                 <FiMapPin className={`mt-1 mr-3 flex-shrink-0 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`} />
