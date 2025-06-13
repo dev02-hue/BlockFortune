@@ -102,7 +102,7 @@ const Footer = ({ darkMode }: { darkMode: boolean }) => {
             <ul className="space-y-3">
               <li className="flex items-start">
                 <FiMail className={`mt-1 mr-3 flex-shrink-0 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`} />
-                <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>support@blockfortune.com</span>
+                <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>blockfortunevercelteam@gmail.com</span>
               </li>
               <li className="flex items-start">
                 <FiPhone className={`mt-1 mr-3 flex-shrink-0 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`} />
