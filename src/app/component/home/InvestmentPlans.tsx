@@ -6,58 +6,44 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 const InvestmentPlans = () => {
   const plans = [
     {
-      name: "XP-FLASH",
-      dailyROI: 2.5,
-      min: 100,
-      max: 2999,
-      duration: 6,
-      affiliate: 7,
-      color: "bg-blue-500"
+      name: "5-Day Plan",
+      dailyROI: 3.5,
+      min: 150,
+      max: 4999,
+      duration: 5,
+      affiliate: 10,
+      color: "bg-blue-500",
+      description: "Includes principal after 5 days"
     },
     {
-      name: "XP-MINER",
-      dailyROI: 4.5,
-      min: 3000,
-      max: 5999,
+      name: "7-Day Plan",
+      dailyROI: 5.5,
+      min: 5000,
+      max: 19999,
       duration: 7,
-      affiliate: 7,
-      color: "bg-purple-500"
+      affiliate: 10,
+      color: "bg-purple-500",
+      description: "Includes principal after 7 days"
     },
     {
-      name: "XP-POOL",
-      dailyROI: 7.8,
-      min: 6000,
-      max: 9999,
-      duration: 8,
-      affiliate: 7,
-      color: "bg-indigo-500"
+      name: "10-Day Plan",
+      dailyROI: 7.5,
+      min: 20000,
+      max: 49999,
+      duration: 10,
+      affiliate: 10,
+      color: "bg-indigo-500",
+      description: "Includes principal after 10 days"
     },
     {
-      name: "FOREX",
-      dailyROI: 1.4,
-      min: 7560,
-      max: 9999,
-      duration: 35,
-      affiliate: 7,
-      color: "bg-green-500"
-    },
-    {
-      name: "AGRI",
-      dailyROI: 1.6,
-      min: 10000,
-      max: 24999,
-      duration: 60,
-      affiliate: 7,
-      color: "bg-amber-500"
-    },
-    {
-      name: "REAL EST",
-      dailyROI: 1.8,
-      min: 25000,
-      max: 500000,
-      duration: 90,
-      affiliate: 7,
-      color: "bg-red-500"
+      name: "13-Day Plan",
+      dailyROI: 10.5,
+      min: 50000,
+      max: 100000,
+      duration: 13,
+      affiliate: 10,
+      color: "bg-green-500",
+      description: "Includes principal after 13 days"
     }
   ];
 
@@ -115,7 +101,7 @@ const InvestmentPlans = () => {
             Investment <span className="bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">Plans</span>
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-            Choose from our range of professionally managed investment portfolios with competitive returns.
+            Choose from our range of investment plans with competitive returns and principal included.
           </p>
         </motion.div>
 
@@ -159,7 +145,10 @@ const InvestmentPlans = () => {
                   </div>
                   <div className="flex items-center">
                     <FiUsers className="text-gray-500 dark:text-gray-400 mr-2" />
-                    <span className="text-gray-600 dark:text-gray-300">Affiliate: {plan.affiliate}%</span>
+                    <span className="text-gray-600 dark:text-gray-300">Referral: {plan.affiliate}%</span>
+                  </div>
+                  <div className="pt-2 text-sm text-gray-500 dark:text-gray-400 italic">
+                    {plan.description}
                   </div>
                 </div>
 
@@ -172,54 +161,51 @@ const InvestmentPlans = () => {
 
           {/* ROI Comparison Chart */}
           <motion.div
-  initial={{ opacity: 0, x: 20 }}
-  whileInView={{ opacity: 1, x: 0 }}
-  transition={{ duration: 0.5, delay: 0.2 }}
-  viewport={{ once: true }}
-  className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700"
->
-  <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-6 flex items-center">
-    <FiTrendingUp className="mr-2 text-blue-500" />
-    Daily ROI Comparison
-  </h3>
-  
-  <div className="h-64">
-    <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={roiData}>
-        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" strokeOpacity={0.2} />
-        <XAxis 
-          dataKey="name" 
-          axisLine={false}
-          tickLine={false}
-          tick={{ fill: '#6B7280', fontSize: 12 }}
-        />
-        <YAxis 
-          axisLine={false}
-          tickLine={false}
-          tick={{ fill: '#6B7280', fontSize: 12 }}
-          tickFormatter={(value) => `${value}%`}
-        />
-        <Tooltip 
-          contentStyle={{
-            backgroundColor: '#1F2937',
-            border: 'none',
-            borderRadius: '0.5rem',
-            color: 'white'
-          }}
-          formatter={(value) => [`${value}%`, "Daily ROI"]}
-          labelFormatter={(label) => `Plan: ${label}`}
-        />
-        {roiData.map((entry, index) => (
-          <Bar 
-            key={`bar-${index}`}
-            dataKey="roi"  // Added the required dataKey prop
-            fill={entry.color}
-            radius={[4, 4, 0, 0]}
-            animationDuration={1500}
-          />
-        ))}
-      </BarChart>
-    </ResponsiveContainer>
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            viewport={{ once: true }}
+            className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700"
+          >
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-6 flex items-center">
+              <FiTrendingUp className="mr-2 text-blue-500" />
+              Daily ROI Comparison
+            </h3>
+            
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={roiData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" strokeOpacity={0.2} />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#6B7280', fontSize: 12 }}
+                  />
+                  <YAxis 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#6B7280', fontSize: 12 }}
+                    tickFormatter={(value) => `${value}%`}
+                  />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: '#1F2937',
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      color: 'white'
+                    }}
+                    formatter={(value) => [`${value}%`, "Daily ROI"]}
+                    labelFormatter={(label) => `Plan: ${label}`}
+                  />
+                  <Bar 
+                    dataKey="roi"
+                    fill="#4f46e5" // Using a single color for simplicity
+                    radius={[4, 4, 0, 0]}
+                    animationDuration={1500}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
 
             {/* Key Features */}
@@ -235,8 +221,8 @@ const InvestmentPlans = () => {
                   <FiAward className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-800 dark:text-gray-100">Professional Management</h4>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">All plans are managed by our team of certified financial experts.</p>
+                  <h4 className="font-medium text-gray-800 dark:text-gray-100">Principal Included</h4>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">Your initial investment is included in the daily returns.</p>
                 </div>
               </motion.div>
               <motion.div
@@ -250,8 +236,8 @@ const InvestmentPlans = () => {
                   <FiDollarSign className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-800 dark:text-gray-100">Daily Payouts</h4>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">Earnings are calculated and paid daily to your account.</p>
+                  <h4 className="font-medium text-gray-800 dark:text-gray-100">Referral Bonus</h4>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">Earn 10% commission on every referral investment.</p>
                 </div>
               </motion.div>
             </div>

@@ -15,35 +15,74 @@ const FAQComponent = () => {
   const faqs = [
     {
       question: "What is BlockFortune?",
-      answer: "BlockFortune is a premier investment platform offering carefully curated investment plans across various sectors including cryptocurrency mining, forex trading, agriculture, and real estate. Our platform is designed to provide consistent returns while managing risk through diversified portfolios."
+      answer: "BlockFortune is a premier investment platform offering carefully curated investment plans with fixed returns. Our platform is designed to provide consistent returns with principal protection through short-term investment cycles."
     },
     {
       question: "How do I get started with investing?",
-      answer: "To begin investing with BlockFortune:\n1. Create an account and complete verification\n2. Deposit funds into your BlockFortune wallet\n3. Select an investment plan that matches your financial goals\n4. Monitor your investments through our intuitive dashboard"
+      answer: "To begin investing with BlockFortune:\n1. Create an account and complete verification\n2. Deposit funds into your BlockFortune wallet\n3. Select an investment plan that matches your financial goals\n4. Receive your principal plus returns after the plan duration"
     },
     {
       question: "Are there any fees for investing?",
-      answer: "BlockFortune charges no hidden fees. The only cost is the investment amount you commit to your chosen plan. All returns are calculated after accounting for operational costs."
+      answer: "BlockFortune charges no hidden fees. The only cost is the investment amount you commit to your chosen plan. All returns are calculated net of any operational costs."
     },
     {
       question: "How are the returns calculated?",
-      answer: "Returns are calculated based on the daily ROI percentage of your chosen plan. For example, our XP-FLASH plan offers 2.5% daily ROI for 6 days. This means a $100 investment would yield $2.5 daily, totaling $15 over 6 days."
+      answer: "Returns are calculated based on the daily ROI percentage of your chosen plan. For example, our 5-Day Plan offers 3.5% daily ROI. This means a $1,000 investment would yield $1,175 ($175 profit) after 5 days, including your principal."
     },
     {
       question: "What payment methods are supported?",
-      answer: "We support various payment methods including:\n- Cryptocurrencies (Bitcoin, Ethereum, USDT)\n- Bank transfers\n- Credit/debit cards\n- E-wallets (coming soon)"
+      answer: "We support various payment methods including:\n- Cryptocurrencies (Bitcoin, Ethereum, USDT)\n- Bank transfers\n- Credit/debit cards"
     },
     {
-      question: "How do withdrawals work?",
-      answer: "Withdrawals are processed within 24-48 hours. You can request withdrawals from your dashboard, and funds will be sent to your registered withdrawal method. Minimum withdrawal amounts may apply depending on your chosen method."
+      question: "When do I get my returns?",
+      answer: "You receive your principal plus all returns at the end of your chosen plan duration. For example, if you invest in the 7-Day Plan, you'll receive your full payment after 7 days."
     },
     {
       question: "Is my investment secure?",
-      answer: "BlockFortune employs bank-grade security measures including:\n- 256-bit SSL encryption\n- Two-factor authentication\n- Cold storage for digital assets\n- Regular security audits\nHowever, all investments carry risk, and past performance doesn't guarantee future results."
+      answer: "BlockFortune employs bank-grade security measures including:\n- 256-bit SSL encryption\n- Two-factor authentication\n- Regular security audits\nAll investments include principal protection in our plans."
     },
     {
-      question: "What is the affiliate program?",
-      answer: "Our affiliate program allows you to earn 7% commission on investments made by users you refer. You can track your referrals and earnings in real-time through your dashboard."
+      question: "What is the referral program?",
+      answer: "Our referral program allows you to earn 10% commission on investments made by users you refer. You can track your referrals and earnings in real-time through your dashboard."
+    }
+  ];
+
+  const plans = [
+    {
+      name: "5-Day Plan",
+      dailyROI: 3.5,
+      min: 150,
+      max: 4999,
+      duration: 5,
+      color: "bg-blue-500",
+      description: "Principal + 17.5% return"
+    },
+    {
+      name: "7-Day Plan",
+      dailyROI: 5.5,
+      min: 5000,
+      max: 19999,
+      duration: 7,
+      color: "bg-purple-500",
+      description: "Principal + 38.5% return"
+    },
+    {
+      name: "10-Day Plan",
+      dailyROI: 7.5,
+      min: 20000,
+      max: 49999,
+      duration: 10,
+      color: "bg-indigo-500",
+      description: "Principal + 75% return"
+    },
+    {
+      name: "13-Day Plan",
+      dailyROI: 10.5,
+      min: 50000,
+      max: 100000,
+      duration: 13,
+      color: "bg-green-500",
+      description: "Principal + 136.5% return"
     }
   ];
 
@@ -61,7 +100,7 @@ const FAQComponent = () => {
               BlockFortune <span className="bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">FAQ</span>
             </h1>
             <p className={`mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              Answers to common questions about our investment platform
+              Answers to common questions about our investment plans
             </p>
           </div>
           <button
@@ -76,16 +115,19 @@ const FAQComponent = () => {
         {/* Investment Plans Overview */}
         <div className={`mb-12 p-6 rounded-lg ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-100 border-gray-200'} border`}>
           <h2 className={`text-xl font-semibold mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-800'}`}>Our Investment Plans</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
             {plans.map((plan, index) => (
               <div 
                 key={index}
                 className={`p-4 rounded-lg ${plan.color} text-white`}
               >
-                <h3 className="font-bold">{plan.name}</h3>
-                <p className="text-sm mt-1">Daily ROI: {plan.dailyROI}%</p>
-                <p className="text-sm">Duration: {plan.duration} days</p>
-                <p className="text-sm">Investment: ${plan.min.toLocaleString()} - ${plan.max !== 500000 ? plan.max.toLocaleString() : '500K+'}</p>
+                <h3 className="font-bold text-lg">{plan.name}</h3>
+                <div className="mt-2 space-y-1">
+                  <p className="text-sm">Daily ROI: {plan.dailyROI}%</p>
+                  <p className="text-sm">Duration: {plan.duration} days</p>
+                  <p className="text-sm">Investment: ${plan.min.toLocaleString()} - ${plan.max.toLocaleString()}</p>
+                  <p className="text-sm font-medium mt-1">{plan.description}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -133,14 +175,14 @@ const FAQComponent = () => {
 
         {/* CTA Section */}
         <div className={`mt-12 p-6 rounded-lg text-center ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
-          <h2 className={`text-xl font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-800'}`}>Ready to grow your wealth?</h2>
+          <h2 className={`text-xl font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-800'}`}>Ready to invest?</h2>
           <p className={`mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            Join thousands of investors already earning with BlockFortune
+            Join our growing community of investors today
           </p>
           <button
             className={`px-6 py-3 rounded-md font-medium ${darkMode ? 'bg-blue-400 hover:bg-blue-500 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'} transition-colors duration-200`}
           >
-            Get Started Now
+            Start Investing Now
           </button>
         </div>
       </div>
@@ -149,60 +191,3 @@ const FAQComponent = () => {
 };
 
 export default FAQComponent;
-
-const plans = [
-  {
-    name: "XP-FLASH",
-    dailyROI: 2.5,
-    min: 100,
-    max: 2999,
-    duration: 6,
-    affiliate: 7,
-    color: "bg-blue-500"
-  },
-  {
-    name: "XP-MINER",
-    dailyROI: 4.5,
-    min: 3000,
-    max: 5999,
-    duration: 7,
-    affiliate: 7,
-    color: "bg-purple-500"
-  },
-  {
-    name: "XP-POOL",
-    dailyROI: 7.8,
-    min: 6000,
-    max: 9999,
-    duration: 8,
-    affiliate: 7,
-    color: "bg-indigo-500"
-  },
-  {
-    name: "FOREX",
-    dailyROI: 1.4,
-    min: 7560,
-    max: 9999,
-    duration: 35,
-    affiliate: 7,
-    color: "bg-green-500"
-  },
-  {
-    name: "AGRI",
-    dailyROI: 1.6,
-    min: 10000,
-    max: 24999,
-    duration: 60,
-    affiliate: 7,
-    color: "bg-amber-500"
-  },
-  {
-    name: "REAL EST",
-    dailyROI: 1.8,
-    min: 25000,
-    max: 500000,
-    duration: 90,
-    affiliate: 7,
-    color: "bg-red-500"
-  }
-];

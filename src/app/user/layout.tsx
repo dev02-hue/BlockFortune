@@ -126,7 +126,7 @@ export default function DashboardLayout({
             <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 flex items-center justify-center">
               <FiUser size={20} />
             </div>
-            <span className="hidden md:inline">John Doe</span>
+           
           </button>
 
           <AnimatePresence>
@@ -265,7 +265,7 @@ export default function DashboardLayout({
         </AnimatePresence>
 
         {/* Main Content */}
-        <main className={`flex-1 overflow-y-auto p-6   bg-opacity-20 transition-all duration-300 ${isSidebarOpen ? ' ' : ''}`}>
+        <main className={` overflow-y-auto    bg-opacity-20 transition-all duration-300 ${isSidebarOpen ? ' ' : ''}`}>
           {children}
         </main>
       </div>
