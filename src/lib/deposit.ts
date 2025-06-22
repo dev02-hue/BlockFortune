@@ -2,23 +2,21 @@
 
 import { supabase } from '@/lib/supabaseClient'
 import { cookies } from 'next/headers'
-import { sendDepositEmailToAdmin } from './email'
-import { CRYPTO_WALLETS } from '@/type/type'
+import { sendDepositEmailToAdmin, sendWithdrawalConfirmationToUser, sendWithdrawalEmailToAdmin } from './email'
+import { CRYPTO_NETWORKS, CRYPTO_WALLETS } from '@/type/type'
 
 // Define the types for our crypto constants
 type CryptoType = 'BTC' | 'ETH' | 'USDT_TRC20' | 'TRX' | 'SOL'
-type CryptoNetworks = Record<CryptoType, string>
-
-// Supported cryptocurrencies with their wallet addresses
 
 
-const CRYPTO_NETWORKS: CryptoNetworks = {
-  BTC: 'Bitcoin Network',
-  ETH: 'Ethereum (ERC20)',
-  USDT_TRC20: 'USDT (TRC20)',
-  TRX: 'Tron (TRX)',
-  SOL: 'Solana'
+const WITHDRAWAL_FEES: Record<CryptoType, number> = {
+  BTC: 0.0005,
+  ETH: 0.01,
+  USDT_TRC20: 1,
+  TRX: 5,
+  SOL: 0.01
 }
+
 
 export async function initiateBlockFortuneDeposit(
     amount: number,
@@ -218,5 +216,364 @@ export async function rejectBlockFortuneDeposit(depositId: string, adminNotes: s
   } catch (err) {
     console.error('Unexpected error in rejectBlockFortuneDeposit:', err)
     return { error: 'An unexpected error occurred. Please try again.' }
+  }
+}
+
+
+// ---------------------------// Withdrawal Functions
+// ---------------------------//
+
+
+export async function initiateBlockFortuneWithdrawal(
+  amount: number,
+  cryptoType: CryptoType,
+  walletAddress: string
+) {
+  try {
+    console.log('[INIT] Starting withdrawal for:', cryptoType, 'Amount:', amount)
+
+    // 1. Get user_id from cookies
+    const cookieStore = await cookies()
+    const userId = cookieStore.get('user_id')?.value
+    console.log('[STEP 1] userId:', userId)
+
+    if (!userId) {
+      console.error('[ERROR] User not authenticated')
+      return { error: 'Not authenticated. Please log in again.' }
+    }
+
+    // 2. Fetch user profile to get email and balance
+    const { data: profile, error: profileError } = await supabase
+      .from('blockfortuneprofile')
+      .select('email, balance')
+      .eq('id', userId)
+      .single()
+    console.log('[STEP 2] Profile:', profile)
+
+    if (profileError || !profile) {
+      console.error('[ERROR] Profile fetch failed:', profileError)
+      return { error: 'Failed to fetch user profile' }
+    }
+
+    // 3. Validate amount (minimum $50 withdrawal)
+    if (amount < 50) {
+      console.warn('[ERROR] Invalid withdrawal amount:', amount)
+      return { error: 'Minimum withdrawal amount is $50' }
+    }
+
+    // 4. Check sufficient balance (including fee)
+    const fee = WITHDRAWAL_FEES[cryptoType] || 0
+    if (profile.balance < amount + fee) {
+      console.warn('[ERROR] Insufficient balance:', profile.balance)
+      return { error: 'Insufficient balance for withdrawal' }
+    }
+
+    // 5. Validate wallet address format (basic validation)
+    if (!walletAddress || walletAddress.length < 10) {
+      console.warn('[ERROR] Invalid wallet address:', walletAddress)
+      return { error: 'Please provide a valid wallet address' }
+    }
+
+    // 6. Generate unique reference
+    const reference = `BlockFortune-WDL-${Date.now()}-${Math.floor(Math.random() * 1000)}`
+    const narration = `Withdrawal from BlockFortune to ${walletAddress}`
+    console.log('[STEP 6] Generated Reference:', reference)
+
+    // 7. Create withdrawal record
+    const { data: withdrawal, error: withdrawalError } = await supabase
+      .from('blockfortunewithdrawals')
+      .insert([{
+        user_id: userId,
+        amount,
+        crypto_type: cryptoType,
+        wallet_address: walletAddress,
+        status: 'pending',
+        reference,
+        user_email: profile.email,
+        narration,
+        network_fee: fee
+      }])
+      .select()
+      .single()
+    console.log('[STEP 7] Withdrawal inserted:', withdrawal)
+
+    if (withdrawalError || !withdrawal) {
+      console.error('[ERROR] Withdrawal insertion failed:', withdrawalError)
+      return { error: 'Failed to initiate withdrawal' }
+    }
+
+    // 8. Notify admin
+    console.log('[STEP 8] Sending admin email notification...')
+    await sendWithdrawalEmailToAdmin({
+      userEmail: profile.email,
+      amount,
+      reference,
+      userId,
+      cryptoType,
+      walletAddress,
+      transactionId: withdrawal.id,
+      fee
+    })
+    console.log('[STEP 8] Email sent')
+
+    const result = {
+      success: true,
+      withdrawalDetails: {
+        cryptoType,
+        cryptoNetwork: CRYPTO_NETWORKS[cryptoType],
+        walletAddress,
+        amount,
+        fee,
+        reference,
+        narration,
+        transactionId: withdrawal.id
+      }
+    }
+
+    console.log('[SUCCESS] Withdrawal process complete:', result)
+    return result
+
+  } catch (err) {
+    console.error('[FATAL ERROR] Unexpected error in initiateBlockFortuneWithdrawal:', err)
+    return { error: 'An unexpected error occurred. Please try again.' }
+  }
+}
+
+export async function approveBlockFortuneWithdrawal(withdrawalId: string) {
+  try {
+    // 1. Fetch withdrawal record
+    const { data: withdrawal, error: fetchError } = await supabase
+      .from('blockfortunewithdrawals')
+      .select('*')
+      .eq('id', withdrawalId)
+      .single()
+
+    if (fetchError || !withdrawal) {
+      console.error('Withdrawal fetch failed:', fetchError)
+      return { error: 'Withdrawal not found' }
+    }
+
+    if (withdrawal.status !== 'pending') {
+      return { 
+        error: 'Withdrawal already processed',
+        currentStatus: withdrawal.status 
+      }
+    }
+
+    // 2. Update withdrawal status to completed (trigger will handle balance deduction)
+    const { error: updateError } = await supabase
+      .from('blockfortunewithdrawals')
+      .update({
+        status: 'completed',
+        processed_at: new Date().toISOString()
+      })
+      .eq('id', withdrawalId)
+
+    if (updateError) {
+      console.error('Withdrawal update failed:', updateError)
+      return { error: 'Failed to complete withdrawal' }
+    }
+
+    // 3. Send confirmation to user
+    await sendWithdrawalConfirmationToUser({
+      userEmail: withdrawal.user_email,
+      amount: withdrawal.amount,
+      cryptoType: withdrawal.crypto_type as CryptoType,
+      walletAddress: withdrawal.wallet_address
+    })
+
+    return { 
+      success: true,
+      withdrawalId,
+      userId: withdrawal.user_id,
+      amount: withdrawal.amount
+    }
+  } catch (err) {
+    console.error('Unexpected error in approveBlockFortuneWithdrawal:', err)
+    return { error: 'An unexpected error occurred. Please try again.' }
+  }
+}
+
+export async function rejectBlockFortuneWithdrawal(
+  withdrawalId: string, 
+  adminNotes: string = ''
+) {
+  try {
+    // 1. Verify withdrawal exists and is pending
+    const { data: withdrawal, error: fetchError } = await supabase
+      .from('blockfortunewithdrawals')
+      .select('status, user_email, amount, crypto_type')
+      .eq('id', withdrawalId)
+      .single()
+
+    if (fetchError || !withdrawal) {
+      console.error('Withdrawal fetch failed:', fetchError)
+      return { error: 'Withdrawal not found' }
+    }
+
+    if (withdrawal.status !== 'pending') {
+      return { 
+        error: 'Withdrawal already processed',
+        currentStatus: withdrawal.status 
+      }
+    }
+
+    // 2. Update status to rejected
+    const { error: updateError } = await supabase
+      .from('blockfortunewithdrawals')
+      .update({ 
+        status: 'rejected',
+        processed_at: new Date().toISOString(),
+        admin_notes: adminNotes
+      })
+      .eq('id', withdrawalId)
+
+    if (updateError) {
+      console.error('Rejection failed:', updateError)
+      return { error: 'Failed to reject withdrawal' }
+    }
+
+    return { 
+      success: true,
+      withdrawalId
+    }
+  } catch (err) {
+    console.error('Unexpected error in rejectBlockFortuneWithdrawal:', err)
+    return { error: 'An unexpected error occurred. Please try again.' }
+  }
+}
+
+
+export async function getBlockFortuneWithdrawalHistory(
+  filters: {
+    status?: 'pending' | 'completed' | 'rejected',
+    limit?: number,
+    offset?: number
+  } = {}
+) {
+  try {
+    // 1. Get user_id from cookies
+    const cookieStore = await cookies()
+    const userId = cookieStore.get('user_id')?.value
+    console.log('[STEP 1] userId:', userId)
+
+    if (!userId) {
+      console.error('[ERROR] User not authenticated')
+      return { error: 'Not authenticated. Please log in again.', data: null }
+    }
+
+    // 2. Build base query
+    let query = supabase
+      .from('blockfortunewithdrawals')
+      .select('*', { count: 'exact' })
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+
+    // 3. Apply filters if provided
+    if (filters.status) {
+      query = query.eq('status', filters.status)
+    }
+
+    if (filters.limit) {
+      query = query.limit(filters.limit)
+    }
+
+    if (filters.offset) {
+      query = query.range(filters.offset, filters.offset + (filters.limit || 10) - 1)
+    }
+
+    // 4. Execute query
+    const { data, error, count } = await query
+
+    if (error) {
+      console.error('[ERROR] Withdrawal history fetch failed:', error)
+      return { error: 'Failed to fetch withdrawal history', data: null }
+    }
+
+    return {
+      data: data.map(withdrawal => ({
+        id: withdrawal.id,
+        amount: withdrawal.amount,
+        cryptoType: withdrawal.crypto_type,
+        walletAddress: withdrawal.wallet_address,
+        status: withdrawal.status,
+        reference: withdrawal.reference,
+        createdAt: withdrawal.created_at,
+        processedAt: withdrawal.processed_at,
+        networkFee: withdrawal.network_fee,
+        adminNotes: withdrawal.admin_notes
+      })),
+      count: count || 0,
+      error: null
+    }
+
+  } catch (err) {
+    console.error('[FATAL ERROR] Unexpected error in getBlockFortuneWithdrawalHistory:', err)
+    return { error: 'An unexpected error occurred. Please try again.', data: null }
+  }
+}
+
+export async function getAllWithdrawals(
+  filters: {
+    status?: 'pending' | 'completed' | 'rejected',
+    userId?: string,
+    limit?: number,
+    offset?: number
+  } = {}
+) {
+  try {
+    // Build base query
+    let query = supabase
+      .from('blockfortunewithdrawals')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+
+    // Apply filters
+    if (filters.status) {
+      query = query.eq('status', filters.status)
+    }
+
+    if (filters.userId) {
+      query = query.eq('user_id', filters.userId)
+    }
+
+    if (filters.limit) {
+      query = query.limit(filters.limit)
+    }
+
+    if (filters.offset) {
+      query = query.range(filters.offset, filters.offset + (filters.limit || 10) - 1)
+    }
+
+    // Execute query
+    const { data, error, count } = await query
+
+    if (error) {
+      console.error('[ERROR] Withdrawals fetch failed:', error)
+      return { error: 'Failed to fetch withdrawals', data: null }
+    }
+
+    return {
+      data: data.map(withdrawal => ({
+        id: withdrawal.id,
+        userId: withdrawal.user_id,
+        userEmail: withdrawal.user_email,
+        amount: withdrawal.amount,
+        cryptoType: withdrawal.crypto_type,
+        walletAddress: withdrawal.wallet_address,
+        status: withdrawal.status,
+        reference: withdrawal.reference,
+        createdAt: withdrawal.created_at,
+        processedAt: withdrawal.processed_at,
+        networkFee: withdrawal.network_fee,
+        adminNotes: withdrawal.admin_notes
+      })),
+      count: count || 0,
+      error: null
+    }
+
+  } catch (err) {
+    console.error('[FATAL ERROR] Unexpected error in getAllWithdrawals:', err)
+    return { error: 'An unexpected error occurred. Please try again.', data: null }
   }
 }
