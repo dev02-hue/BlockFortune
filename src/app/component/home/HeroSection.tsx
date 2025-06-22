@@ -57,8 +57,7 @@ const HeroSection = () => {
       
       <div className="container mx-auto px-4 py-12 md:py-20 lg:py-28">
         <div className="flex flex-col-reverse lg:flex-row items-center justify-between gap-8 md:gap-12">
-          {/* Text content - now comes first in DOM for mobile but visually appears first on desktop */}
-          <div className="w-full lg:w-1/2 space-y-6 text-center lg:text-left mt-8 lg:mt-0">
+           <div className="w-full lg:w-1/2 space-y-6 text-center lg:text-left  lg:mt-0">
             <AnimatePresence mode="wait">
               <motion.div
                 key={`title-${slide.id}`}

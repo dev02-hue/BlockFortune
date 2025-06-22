@@ -7,13 +7,15 @@ import InvestmentPlans from "../component/home/InvestmentPlans";
 import TradingDashboard from "../component/home/TradingDashboard";
 import TradingFeatures from "../component/home/TradingFeatures";
 import TradingSignalsDashboard from "../component/home/TradingSignalsDashboard";
-
+import TranslateBody from "../component/layout/TranslateBody";
+ 
  
  
 export default function Home() {
   return (
     <div className="bg-gray-900">
-      <HeroSection />
+      <TranslateBody />
+       <HeroSection />
       <CryptoCurrencyTicker />
       <TradingFeatures />
       <EnhancedStatsDashboard />
