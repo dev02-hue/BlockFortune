@@ -99,3 +99,107 @@ export async function sendDepositConfirmationToUser(params: {
     console.error('Failed to send deposit confirmation:', error)
   }
 }
+
+
+export async function sendWithdrawalEmailToAdmin(params: {
+  userEmail: string
+  amount: number
+  reference: string
+  userId: string
+  cryptoType: string
+  walletAddress: string
+  transactionId: string
+  fee: number
+}) {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USERNAME,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    })
+
+    const mailOptions = {
+      from: `BlockFortune <${process.env.EMAIL_USERNAME}>`,
+      to: process.env.ADMIN_EMAIL || 'admin@blockfortune.com',
+      subject: `New Withdrawal Request - ${params.amount} USD (${params.cryptoType})`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2a52be;">New Withdrawal Request</h2>
+          <p><strong>User ID:</strong> ${params.userId}</p>
+          <p><strong>User Email:</strong> ${params.userEmail}</p>
+          <p><strong>Amount:</strong> ${params.amount} USD</p>
+          <p><strong>Crypto Type:</strong> ${params.cryptoType}</p>
+          <p><strong>Wallet Address:</strong> ${params.walletAddress}</p>
+          <p><strong>Network Fee:</strong> ${params.fee} ${params.cryptoType}</p>
+          <p><strong>Reference:</strong> ${params.reference}</p>
+          <p><strong>Transaction ID:</strong> ${params.transactionId}</p>
+          
+          <p style="margin-top: 30px;">
+            <a href="${process.env.ADMIN_DASHBOARD_URL}/withdrawals/${params.transactionId}/approve" 
+               style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+              Approve Withdrawal
+            </a>
+            <a href="${process.env.ADMIN_DASHBOARD_URL}/withdrawals/${params.transactionId}/reject" 
+               style="background-color: #f44336; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-left: 10px;">
+              Reject Withdrawal
+            </a>
+          </p>
+        </div>
+      `,
+    }
+
+    await transporter.sendMail(mailOptions)
+    console.log('Admin notification sent for withdrawal:', params.reference)
+  } catch (error) {
+    console.error('Failed to send admin notification:', error)
+  }
+}
+
+export async function sendWithdrawalConfirmationToUser(params: {
+  userEmail: string
+  amount: number
+  cryptoType: string
+  walletAddress: string
+}) {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USERNAME,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    })
+
+    const mailOptions = {
+      from: `BlockFortune <${process.env.EMAIL_USERNAME}>`,
+      to: params.userEmail,
+      subject: `Your Withdrawal of $${params.amount.toFixed(2)} Has Been Processed`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2a52be;">Withdrawal Confirmed</h2>
+          <p>Dear Valued Member,</p>
+          
+          <p>We're pleased to confirm that your withdrawal of <strong>$${params.amount.toFixed(2)}</strong> 
+          has been successfully processed and sent to your wallet:</p>
+          
+          <p><strong>Wallet Address:</strong> ${params.walletAddress}</p>
+          <p><strong>Network:</strong> ${params.cryptoType}</p>
+          
+          <p>Please allow some time for the transaction to appear in your wallet, depending on network congestion.</p>
+          
+          <p style="margin-top: 30px;">Thank you for choosing BlockFortune for your investment needs.</p>
+          
+          <p>Best regards,<br>
+          The BlockFortune Team</p>
+        </div>
+      `,
+    }
+
+    await transporter.sendMail(mailOptions)
+    console.log('Withdrawal confirmation sent to:', params.userEmail)
+  } catch (error) {
+    console.error('Failed to send withdrawal confirmation:', error)
+  }
+}
