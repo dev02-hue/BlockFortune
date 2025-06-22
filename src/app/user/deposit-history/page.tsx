@@ -1,9 +1,10 @@
-import React from 'react'
+import DepositHistoryTable from "@/app/component/user/DepositHistoryTable";
 
-const page = () => {
+ 
+export default function DepositHistoryPage() {
   return (
-    <div>page</div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+       <DepositHistoryTable />
+    </div>
   )
 }
-
-export default page
