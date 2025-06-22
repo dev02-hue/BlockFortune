@@ -25,7 +25,6 @@ export default function AdminDepositsTable() {
   const [rejectNote, setRejectNote] = useState('')
   const [selectedDepositId, setSelectedDepositId] = useState<string | null>(null)
 
-  // Fetch pending deposits
   useEffect(() => {
     const fetchPendingDeposits = async () => {
       try {
@@ -49,29 +48,7 @@ export default function AdminDepositsTable() {
     fetchPendingDeposits()
 
     // Set up real-time subscription
-    const subscription = supabase
-      .channel('deposits_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'blockfortunedeposits',
-          filter: 'status=eq.pending'
-        },
-        (payload: { eventType: string; new: Deposit; old: { id: string } }) => {
-          if (payload.eventType === 'INSERT') {
-            setDeposits(prev => [payload.new as Deposit, ...prev])
-          } else if (payload.eventType === 'UPDATE') {
-            setDeposits(prev => prev.filter(d => d.id !== payload.old.id))
-          }
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(subscription)
-    }
+    
   }, [])
 
   const handleApprove = async (depositId: string) => {
