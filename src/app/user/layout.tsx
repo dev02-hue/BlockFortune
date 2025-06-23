@@ -114,7 +114,7 @@ export default function DashboardLayout({
           >
             {isSidebarOpen ? <FiX size={24} /> : <FiMenu size={24} />}
           </button>
-          <h1 className="text-xl font-semibold">User Dashboard</h1>
+          <h1 className="text-xl font-semibold">BlockFortune Dashboard</h1>
         </div>
 
         <div className="relative">
