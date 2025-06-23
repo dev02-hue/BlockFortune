@@ -256,7 +256,7 @@ export default function ProfessionalDashboard() {
               <FiGlobe size={24} />
             </motion.div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold">Crypto-Forex Dashboard</h1>
+              <h1 className="text-xl sm:text-2xl font-bold">BlockFortune Dashboard</h1>
               <p className="text-blue-100 text-sm">Real-time market data & portfolio analytics</p>
             </div>
           </div>
