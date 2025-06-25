@@ -1,8 +1,9 @@
+import ConnectWallet from '@/app/component/user/ConnectWallet'
 import React from 'react'
 
 const page = () => {
   return (
-    <div>page</div>
+    <div><ConnectWallet /></div>
   )
 }
 
