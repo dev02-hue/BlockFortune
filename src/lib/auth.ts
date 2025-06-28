@@ -24,6 +24,13 @@ type SignUpInput = {
   referredCode?: string
 }
 
+type ChangeEmailInput = {
+  newEmail: string
+  confirmNewEmail: string
+  password: string
+}
+
+
 type SignInInput = {
   username: string
   password: string
@@ -609,5 +616,125 @@ export async function signOut() {
   } catch (err) {
     console.error('Unexpected sign out error:', err)
     return { error: 'An unexpected error occurred during sign out' }
+  }
+}
+
+
+
+export async function changeAuthEmail({
+  newEmail,
+  confirmNewEmail,
+  password,
+}: ChangeEmailInput) {
+  try {
+    // 1. Validate input
+    if (!newEmail || !confirmNewEmail || !password) {
+      return { error: 'All fields are required' }
+    }
+    if (newEmail !== confirmNewEmail) {
+      return { error: 'Emails do not match' }
+    }
+
+    // 2. Get session from cookies
+    const cookieStore =await cookies()
+    const accessToken = cookieStore.get('sb-access-token')?.value
+    const refreshToken = cookieStore.get('sb-refresh-token')?.value
+
+    if (!accessToken || !refreshToken) {
+      return { error: 'Not authenticated. Please log in again.' }
+    }
+
+    // 3. Set the session on the Supabase client
+    const { data: { user }, error: sessionError } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    })
+
+    if (sessionError || !user) {
+      console.error('Session error:', sessionError)
+      return { error: 'Session expired. Please log in again.' }
+    }
+
+    // 4. Verify current password
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: user.email || '',
+      password,
+    })
+
+    if (signInError) {
+      return { error: 'Current password is incorrect' }
+    }
+
+    // 5. Check if new email is already in use in auth
+    const { data: existingAuthUser, error: authLookupError } = await supabase
+      .from('blockfortuneprofile')
+      .select('email')
+      .eq('email', newEmail)
+      .single()
+
+    if (authLookupError && authLookupError.code !== 'PGRST116') { // Ignore "no rows" error
+      console.error('Auth email lookup error:', authLookupError)
+      return { error: 'Error checking email availability' }
+    }
+
+    if (existingAuthUser) {
+      return { error: 'This email is already registered' }
+    }
+
+    // 6. Update auth email (this will trigger a confirmation email from Supabase)
+    const { error: updateError } = await supabase.auth.updateUser({
+      email: newEmail,
+    })
+
+    if (updateError) {
+      return { error: updateError.message || 'Failed to update email' }
+    }
+
+    // 7. Send notification email to old and new addresses
+    try {
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.EMAIL_USERNAME,
+          pass: process.env.EMAIL_PASSWORD,
+        },
+      })
+
+      // Email to old address
+      await transporter.sendMail({
+        from: process.env.EMAIL_FROM,
+        to: user.email || '',
+        subject: 'BlockFortune - Email Change Notification',
+        html: `
+          <p>Hello,</p>
+          <p>We're notifying you that your BlockFortune account email is being changed to ${newEmail}.</p>
+          <p>If you didn't initiate this change, please contact support immediately.</p>
+        `,
+      })
+
+      // Email to new address
+      await transporter.sendMail({
+        from: process.env.EMAIL_FROM,
+        to: newEmail,
+        subject: 'BlockFortune - Email Change Verification',
+        html: `
+          <p>Hello,</p>
+          <p>Your BlockFortune account email is being updated to this address.</p>
+          <p>Please check your inbox for a verification email from Supabase to complete the process.</p>
+        `,
+      })
+    } catch (emailError) {
+      console.error('Failed to send notification emails:', emailError)
+      // Not critical, so we continue
+    }
+
+    return { 
+      success: true, 
+      message: 'Email update initiated. Please check your new email for verification.' 
+    }
+
+  } catch (err) {
+    console.error('Unexpected error in changeAuthEmail:', err)
+    return { error: 'An unexpected error occurred. Please try again.' }
   }
 }

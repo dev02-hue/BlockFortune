@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiMenu, FiX, FiUser, FiLogOut, FiSettings, FiHome, FiPieChart, FiDollarSign, FiCreditCard, FiShield, FiActivity, FiShoppingBag, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { FiMenu, FiX, FiUser,   FiSettings, FiHome, FiPieChart, FiDollarSign, FiCreditCard, FiShield, FiActivity, FiShoppingBag, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import SignOutButton from '../component/user/SignOutButton';
 
 export default function DashboardLayout({
   children,
@@ -94,12 +95,12 @@ export default function DashboardLayout({
       icon: <FiShoppingBag />,
       section: null
     },
-    { 
-      name: 'Logout', 
-      path: '/logout', 
-      icon: <FiLogOut />,
-      section: null
-    },
+    // { 
+    //   name: 'Logout', 
+    //   path: '/logout', 
+    //   icon: <FiLogOut />,
+    //   section: null
+    // },
   ];
 
   return (
@@ -155,14 +156,9 @@ export default function DashboardLayout({
                     <FiSettings size={16} />
                     <span>Settings</span>
                   </Link>
-                  <Link
-                    href="/user/logout"
-                    className=" px-4 py-2 text-sm hover:bg-purple-900 hover:bg-opacity-50 transition-colors flex items-center space-x-2"
-                    onClick={() => setIsProfileDropdownOpen(false)}
-                  >
-                    <FiLogOut size={16} />
-                    <span>Logout</span>
-                  </Link>
+                  <div className="mt-8">
+          <SignOutButton />
+        </div>
                 </div>
               </motion.div>
             )}
