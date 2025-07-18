@@ -37,7 +37,7 @@ export default function RootLayout({
           {children}
 
           <LayoutVisibility>
-            <Footer darkMode={true} />
+            <Footer  />
           </LayoutVisibility>
         </ThemeProvider>
       </body>
