@@ -1,251 +1,319 @@
-"use client"
-import { motion } from "framer-motion";
-import { FiDollarSign, FiCalendar, FiTrendingUp, FiUsers, FiAward } from "react-icons/fi";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+"use client";
 
-const InvestmentPlans = () => {
-  const plans = [
-    {
-      name: "5-Day Plan",
-      dailyROI: 3.5,
-      min: 150,
-      max: 4999,
-      duration: 5,
-      affiliate: 10,
-      color: "bg-blue-500",
-      description: "Includes principal after 5 days"
+import { motion, Variants } from "framer-motion";
+import {  FaChartLine, FaCoins, FaPiggyBank, FaGem } from "react-icons/fa";
+import { useEffect, useRef } from "react";
+import Image from "next/image";
+
+const plans = [
+  {
+    name: "5-Day Plan",
+    dailyROI: 3.5,
+    min: 150,
+    max: 4999,
+    duration: 5,
+    affiliate: 10,
+    color: "bg-blue-500",
+    description: "Includes principal after 5 days",
+    icon: <FaCoins className="text-yellow-500" />,
+    image: "/surface-GCKO2AAsTI0-unsplash.jpg", // Replace with your actual image paths
+    badge: "Starter"
+  },
+  {
+    name: "7-Day Plan",
+    dailyROI: 5.5,
+    min: 5000,
+    max: 19999,
+    duration: 7,
+    affiliate: 10,
+    color: "bg-purple-500",
+    description: "Includes principal after 7 days",
+    icon: <FaChartLine className="text-purple-500" />,
+    image: "/den-lyons-m5SGlo611H8-unsplash.jpg",
+    badge: "Popular"
+  },
+  {
+    name: "10-Day Plan",
+    dailyROI: 7.5,
+    min: 20000,
+    max: 49999,
+    duration: 10,
+    affiliate: 10,
+    color: "bg-indigo-500",
+    description: "Includes principal after 10 days",
+    icon: <FaPiggyBank className="text-indigo-500" />,
+    image: "/karl-edwards-w_afsP_mS-w-unsplash.jpg",
+    badge: "Premium"
+  },
+  {
+    name: "13-Day Plan",
+    dailyROI: 10.5,
+    min: 50000,
+    max: 100000,
+    duration: 13,
+    affiliate: 10,
+    color: "bg-green-500",
+    description: "Includes principal after 13 days",
+    icon: <FaGem className="text-green-500" />,
+    image: "/priscilla-du-preez-xM4wUnvbCKk-unsplash.jpg",
+    badge: "VIP"
+  }
+];
+
+const containerVariant: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2,
+      when: "beforeChildren",
     },
-    {
-      name: "7-Day Plan",
-      dailyROI: 5.5,
-      min: 5000,
-      max: 19999,
-      duration: 7,
-      affiliate: 10,
-      color: "bg-purple-500",
-      description: "Includes principal after 7 days"
+  },
+};
+
+const cardVariant: Variants = {
+  hidden: { opacity: 0, y: 50, scale: 0.95 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      delay: i * 0.15,
+      duration: 0.6,
+      type: "spring",
+      stiffness: 100,
     },
-    {
-      name: "10-Day Plan",
-      dailyROI: 7.5,
-      min: 20000,
-      max: 49999,
-      duration: 10,
-      affiliate: 10,
-      color: "bg-indigo-500",
-      description: "Includes principal after 10 days"
-    },
-    {
-      name: "13-Day Plan",
-      dailyROI: 10.5,
-      min: 50000,
-      max: 100000,
-      duration: 13,
-      affiliate: 10,
-      color: "bg-green-500",
-      description: "Includes principal after 13 days"
-    }
-  ];
+  }),
+  hover: {
+    y: -10,
+    scale: 1.02,
+    boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
+    transition: { duration: 0.3 },
+  },
+  focus: {
+    scale: 1.03,
+    boxShadow: "0 0 0 3px rgba(5, 150, 105, 0.4)",
+    transition: { duration: 0.2 },
+  },
+};
 
-  // Data for the ROI comparison chart
-  const roiData = plans.map(plan => ({
-    name: plan.name,
-    roi: plan.dailyROI,
-    color: plan.color.replace("bg-", "text-")
-  }));
+export default function PricingSection() {
+  const sectionRef = useRef<HTMLDivElement>(null);
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(value);
-  };
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!sectionRef.current) return;
 
-  const container = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.3
+      const focusableElements = sectionRef.current.querySelectorAll(
+        'button, [href], [tabindex]:not([tabindex="-1"])'
+      );
+
+      if (e.key === "Tab") {
+        const firstElement = focusableElements[0] as HTMLElement;
+        const lastElement = focusableElements[
+          focusableElements.length - 1
+        ] as HTMLElement;
+
+        if (e.shiftKey && document.activeElement === firstElement) {
+          lastElement.focus();
+          e.preventDefault();
+        } else if (!e.shiftKey && document.activeElement === lastElement) {
+          firstElement.focus();
+          e.preventDefault();
+        }
       }
-    }
-  };
+    };
 
-  const item = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        duration: 0.5,
-        ease: "easeOut"
-      }
-    }
-  };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   return (
-    <section className="py-16 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="container mx-auto px-4">
-        {/* Header */}
+    <section
+      ref={sectionRef}
+      className="bg-gradient-to-b from-gray-50 to-white py-20 px-4 md:px-12 lg:px-24"
+      id="pricing"
+    >
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "0px 0px -100px 0px" }}
+        variants={containerVariant}
+        className="max-w-7xl mx-auto"
+      >
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            visible: { opacity: 1, y: 0 },
+          }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16"
+        >
+          <motion.h3
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="text-base md:text-lg text-teal-600 font-medium uppercase tracking-wider"
+          >
+            Investment Plans
+          </motion.h3>
+          <motion.h2
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mt-4 leading-tight"
+          >
+            Tailored Investment <br className="hidden md:block" /> Solutions
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="mt-6 text-lg text-gray-600 max-w-3xl mx-auto"
+          >
+            Choose from our flexible investment plans designed to help you achieve your financial goals with competitive returns.
+          </motion.p>
+        </motion.div>
+
+        <motion.div
+          variants={containerVariant}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6"
+        >
+          {plans.map((plan, index) => (
+            <motion.div
+              key={index}
+              className={`relative border border-gray-200 rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-lg bg-white transition-all ${plan.color} bg-opacity-5`}
+              variants={cardVariant}
+              custom={index}
+              whileHover="hover"
+              whileFocus="focus"
+              whileTap={{ scale: 0.98 }}
+              initial="hidden"
+              animate="visible"
+              tabIndex={0}
+            >
+              {/* Plan Badge */}
+              {plan.badge && (
+                <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-semibold ${
+                  plan.badge === "Popular" 
+                    ? "bg-orange-100 text-orange-800" 
+                    : plan.badge === "VIP" 
+                      ? "bg-purple-100 text-purple-800"
+                      : plan.badge === "Premium"
+                        ? "bg-blue-100 text-blue-800"
+                        : "bg-gray-100 text-gray-800"
+                }`}>
+                  {plan.badge}
+                </div>
+              )}
+
+              {/* Plan Image */}
+              <div className="h-40 relative overflow-hidden">
+                <Image
+                  src={plan.image}
+                  alt={plan.name}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+                <div className="absolute bottom-4 left-4">
+                  <h4 className="text-2xl font-bold text-white">{plan.name}</h4>
+                </div>
+              </div>
+
+              <div className="p-6 flex flex-col items-center flex-grow">
+                <div className="relative w-full">
+                  <motion.div
+                    whileHover={{ rotate: 5 }}
+                    className="text-5xl font-bold text-gray-900 flex items-center justify-center gap-1 mb-6"
+                  >
+                    <span className="text-3xl">%</span>
+                    {plan.dailyROI}
+                    <span className="text-lg font-medium text-gray-500 ml-1">
+                      /Daily
+                    </span>
+                  </motion.div>
+                </div>
+
+                <div className="w-full mt-2">
+                  <ul className="text-gray-700 space-y-3 w-full text-lg">
+                    <li className="flex items-start">
+                      <span className="text-teal-600 mr-2">✓</span>
+                      <span>Min: <strong>${plan.min.toLocaleString()}</strong></span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="text-teal-600 mr-2">✓</span>
+                      <span>Max: <strong>${plan.max.toLocaleString()}</strong></span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="text-teal-600 mr-2">✓</span>
+                      <span>Duration: <strong>{plan.duration} Days</strong></span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="text-teal-600 mr-2">✓</span>
+                      <span>Affiliate: <strong>{plan.affiliate}%</strong></span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="text-teal-600 mr-2">✓</span>
+                      <span className="text-sm">{plan.description}</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="mt-auto w-full">
+                  <motion.button
+                    whileHover={{ 
+                      backgroundColor: "#047857",
+                      color: "white",
+                      scale: 1.05 
+                    }}
+                    whileFocus={{ 
+                      backgroundColor: "#047857",
+                      color: "white",
+                      scale: 1.05,
+                      boxShadow: "0 0 0 3px rgba(5, 150, 105, 0.5)"
+                    }}
+                    whileTap={{ scale: 0.95 }}
+                    className="mt-8 w-full bg-teal-600 text-white hover:bg-teal-700 px-6 py-3 rounded-lg font-semibold text-lg transition-colors flex items-center justify-center gap-2"
+                  >
+                    {plan.icon}
+                    Invest Now
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Additional Info */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ delay: 0.5 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="mt-16 text-center"
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-4">
-            Investment <span className="bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">Plans</span>
-          </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-            Choose from our range of investment plans with competitive returns and principal included.
+          <p className="text-gray-600">
+            * All plans include principal return at maturity. Past performance is not indicative of future results.
           </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-teal-500"></div>
+              <span className="text-gray-700">24/7 Support</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+              <span className="text-gray-700">Secure Transactions</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+              <span className="text-gray-700">Instant Withdrawals</span>
+            </div>
+          </div>
         </motion.div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Plans Grid */}
-          <motion.div
-            variants={container}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-2 gap-6"
-          >
-            {plans.map((plan, index) => (
-              <motion.div
-                key={`plan-${index}`}
-                variants={item}
-                whileHover={{ y: -5 }}
-                className={`bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 relative overflow-hidden ${plan.color} bg-opacity-10 dark:bg-opacity-10`}
-              >
-                <div className="absolute top-0 right-0 w-16 h-16 -mr-6 -mt-6 rounded-full opacity-20" style={{ backgroundColor: plan.color }}></div>
-                
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold text-gray-800 dark:text-white">{plan.name}</h3>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${plan.color} text-white`}>
-                    {plan.dailyROI}% Daily
-                  </span>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center">
-                    <FiDollarSign className="text-gray-500 dark:text-gray-400 mr-2" />
-                    <span className="text-gray-600 dark:text-gray-300">Min: {formatCurrency(plan.min)}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <FiDollarSign className="text-gray-500 dark:text-gray-400 mr-2" />
-                    <span className="text-gray-600 dark:text-gray-300">Max: {formatCurrency(plan.max)}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <FiCalendar className="text-gray-500 dark:text-gray-400 mr-2" />
-                    <span className="text-gray-600 dark:text-gray-300">Duration: {plan.duration} days</span>
-                  </div>
-                  <div className="flex items-center">
-                    <FiUsers className="text-gray-500 dark:text-gray-400 mr-2" />
-                    <span className="text-gray-600 dark:text-gray-300">Referral: {plan.affiliate}%</span>
-                  </div>
-                  <div className="pt-2 text-sm text-gray-500 dark:text-gray-400 italic">
-                    {plan.description}
-                  </div>
-                </div>
-
-                <button className={`mt-6 w-full py-2 rounded-lg ${plan.color} bg-opacity-90 hover:bg-opacity-100 text-white font-medium transition-all`}>
-                  Invest Now
-                </button>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          {/* ROI Comparison Chart */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            viewport={{ once: true }}
-            className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700"
-          >
-            <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-6 flex items-center">
-              <FiTrendingUp className="mr-2 text-blue-500" />
-              Daily ROI Comparison
-            </h3>
-            
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={roiData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" strokeOpacity={0.2} />
-                  <XAxis 
-                    dataKey="name" 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#6B7280', fontSize: 12 }}
-                  />
-                  <YAxis 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#6B7280', fontSize: 12 }}
-                    tickFormatter={(value) => `${value}%`}
-                  />
-                  <Tooltip 
-                    contentStyle={{
-                      backgroundColor: '#1F2937',
-                      border: 'none',
-                      borderRadius: '0.5rem',
-                      color: 'white'
-                    }}
-                    formatter={(value) => [`${value}%`, "Daily ROI"]}
-                    labelFormatter={(label) => `Plan: ${label}`}
-                  />
-                  <Bar 
-                    dataKey="roi"
-                    fill="#4f46e5" // Using a single color for simplicity
-                    radius={[4, 4, 0, 0]}
-                    animationDuration={1500}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-
-            {/* Key Features */}
-            <div className="mt-8 space-y-4">
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-                viewport={{ once: true }}
-                className="flex items-start"
-              >
-                <div className="flex-shrink-0 mt-1 mr-3 text-blue-500 dark:text-blue-400">
-                  <FiAward className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-medium text-gray-800 dark:text-gray-100">Principal Included</h4>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">Your initial investment is included in the daily returns.</p>
-                </div>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 }}
-                viewport={{ once: true }}
-                className="flex items-start"
-              >
-                <div className="flex-shrink-0 mt-1 mr-3 text-green-500 dark:text-green-400">
-                  <FiDollarSign className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-medium text-gray-800 dark:text-gray-100">Referral Bonus</h4>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">Earn 10% commission on every referral investment.</p>
-                </div>
-              </motion.div>
-            </div>
-          </motion.div>
-        </div>
-      </div>
+      </motion.div>
     </section>
   );
-};
-
-export default InvestmentPlans;
+}

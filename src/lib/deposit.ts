@@ -114,6 +114,43 @@ export async function initiateBlockFortuneDeposit(
       return { error: 'An unexpected error occurred. Please try again.' }
     }
   }
+
+
+  export async function getTotalCompletedDeposits() {
+    try {
+      // 1. Get user_id from cookies
+      const cookieStore = await cookies()
+      const userId = cookieStore.get('user_id')?.value
+      console.log('[STEP 1] userId:', userId)
+  
+      if (!userId) {
+        console.error('[ERROR] User not authenticated')
+        return { error: 'Not authenticated. Please log in again.', total: 0 }
+      }
+  
+      // 2. Fetch all completed deposits for the user
+      const { data: deposits, error } = await supabase
+        .from('blockfortunedeposits')
+        .select('amount')
+        .eq('user_id', userId)
+        .eq('status', 'completed')
+  
+      if (error) {
+        console.error('[ERROR] Failed to fetch deposits:', error)
+        return { error: 'Failed to fetch deposit history', total: 0 }
+      }
+  
+      // 3. Calculate total amount
+      const total = deposits.reduce((sum, deposit) => sum + deposit.amount, 0)
+      console.log(`[SUCCESS] Calculated total deposits for user ${userId}: ${total}`)
+  
+      return { total }
+  
+    } catch (err) {
+      console.error('[FATAL ERROR] Unexpected error in getTotalCompletedDeposits:', err)
+      return { error: 'An unexpected error occurred. Please try again.', total: 0 }
+    }
+  }
   
 export async function approveBlockFortuneDeposit(depositId: string) {
   try {
@@ -336,6 +373,78 @@ export async function initiateBlockFortuneWithdrawal(
   } catch (err) {
     console.error('[FATAL ERROR] Unexpected error in initiateBlockFortuneWithdrawal:', err)
     return { error: 'An unexpected error occurred. Please try again.' }
+  }
+}
+
+export async function getTotalPendingWithdrawals() {
+  try {
+    // 1. Get user_id from cookies
+    const cookieStore = await cookies()
+    const userId = cookieStore.get('user_id')?.value
+    console.log('[STEP 1] userId:', userId)
+
+    if (!userId) {
+      console.error('[ERROR] User not authenticated')
+      return { error: 'Not authenticated. Please log in again.', total: 0 }
+    }
+
+    // 2. Fetch all pending withdrawals for the user
+    const { data: withdrawals, error } = await supabase
+      .from('blockfortunewithdrawals')
+      .select('amount')
+      .eq('user_id', userId)
+      .eq('status', 'pending')
+
+    if (error) {
+      console.error('[ERROR] Failed to fetch withdrawals:', error)
+      return { error: 'Failed to fetch pending withdrawals', total: 0 }
+    }
+
+    // 3. Calculate total amount
+    const total = withdrawals.reduce((sum, withdrawal) => sum + withdrawal.amount, 0)
+    console.log(`[SUCCESS] Calculated pending withdrawals for user ${userId}: ${total}`)
+
+    return { total }
+
+  } catch (err) {
+    console.error('[FATAL ERROR] Unexpected error in getTotalPendingWithdrawals:', err)
+    return { error: 'An unexpected error occurred. Please try again.', total: 0 }
+  }
+}
+
+export async function getTotalCompletedWithdrawals() {
+  try {
+    // 1. Get user_id from cookies
+    const cookieStore = await cookies()
+    const userId = cookieStore.get('user_id')?.value
+    console.log('[STEP 1] userId:', userId)
+
+    if (!userId) {
+      console.error('[ERROR] User not authenticated')
+      return { error: 'Not authenticated. Please log in again.', total: 0 }
+    }
+
+    // 2. Fetch all completed withdrawals for the user
+    const { data: withdrawals, error } = await supabase
+      .from('blockfortunewithdrawals')
+      .select('amount')
+      .eq('user_id', userId)
+      .eq('status', 'completed')
+
+    if (error) {
+      console.error('[ERROR] Failed to fetch withdrawals:', error)
+      return { error: 'Failed to fetch completed withdrawals', total: 0 }
+    }
+
+    // 3. Calculate total amount
+    const total = withdrawals.reduce((sum, withdrawal) => sum + withdrawal.amount, 0)
+    console.log(`[SUCCESS] Calculated completed withdrawals for user ${userId}: ${total}`)
+
+    return { total }
+
+  } catch (err) {
+    console.error('[FATAL ERROR] Unexpected error in getTotalCompletedWithdrawals:', err)
+    return { error: 'An unexpected error occurred. Please try again.', total: 0 }
   }
 }
 

@@ -56,7 +56,7 @@ export default function ChangeEmailForm() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="newEmail" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="newEmail" className="block text-sm font-medium text-black">
             New Email
           </label>
           <input
@@ -66,12 +66,12 @@ export default function ChangeEmailForm() {
             value={formData.newEmail}
             onChange={handleChange}
             required
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none text-black focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
 
         <div>
-          <label htmlFor="confirmNewEmail" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="confirmNewEmail" className="block text-sm font-medium text-black">
             Confirm New Email
           </label>
           <input
@@ -81,12 +81,12 @@ export default function ChangeEmailForm() {
             value={formData.confirmNewEmail}
             onChange={handleChange}
             required
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none text-black focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="password" className="block text-sm font-medium text-black">
             Current Password
           </label>
           <input
@@ -96,7 +96,7 @@ export default function ChangeEmailForm() {
             value={formData.password}
             onChange={handleChange}
             required
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 text-black focus:border-blue-500"
           />
         </div>
 
