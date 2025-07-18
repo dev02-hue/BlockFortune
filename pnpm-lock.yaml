@@ -75,6 +75,9 @@ importers:
       '@types/react':
         specifier: ^19
         version: 19.1.8
+      '@types/react-countup':
+        specifier: ^4.3.0
+        version: 4.3.1(react@19.1.0)
       '@types/react-dom':
         specifier: ^19
         version: 19.1.6(@types/react@19.1.8)
@@ -559,6 +562,10 @@ packages:
 
   '@types/phoenix@1.6.6':
     resolution: {integrity: sha512-PIzZZlEppgrpoT2QgbnDU+MMzuR6BbCjllj0bM70lWoejMeNJAxCchxnv7J3XFkI8MpygtRpzXrIlmWUBclP5A==}
+
+  '@types/react-countup@4.3.1':
+    resolution: {integrity: sha512-8KwOdVVKhMOdtXJoOg3YXZwWxnFnZtPojNs/DZRlhHTpOYIb1If+9+rVPnwnXDhNhphj5diUCds9E26VtVK8IA==}
+    deprecated: This is a stub types definition. react-countup provides its own type definitions, so you do not need this installed.
 
   '@types/react-dom@19.1.6':
     resolution: {integrity: sha512-4hOiT/dwO8Ko0gV1m/TJZYk3y0KBnY9vzDh7W+DH17b2HFSOGgdj33dhihPeuy3l0q23+4e+hoXHV6hCC4dCXw==}
@@ -2556,6 +2563,12 @@ snapshots:
       '@types/node': 20.19.1
 
   '@types/phoenix@1.6.6': {}
+
+  '@types/react-countup@4.3.1(react@19.1.0)':
+    dependencies:
+      react-countup: 6.5.3(react@19.1.0)
+    transitivePeerDependencies:
+      - react
 
   '@types/react-dom@19.1.6(@types/react@19.1.8)':
     dependencies:
