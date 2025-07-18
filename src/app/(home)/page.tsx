@@ -15,8 +15,8 @@ import TeamSection from "../component/home/TeamSection";
 // import TradingFeatures from "../component/home/TradingFeatures";
 // import TradingSignalsDashboard from "../component/home/TradingSignalsDashboard";
 import TranslateBody from "../component/layout/TranslateBody";
-import { ContactForm } from "../component/user/ContactForm";
- 
+import ContactForm from "../component/user/ContactForm";
+  
  
  
 export default function Home() {

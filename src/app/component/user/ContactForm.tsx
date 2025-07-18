@@ -5,7 +5,7 @@ import { FiUser, FiMail, FiMessageSquare, FiArrowRight } from 'react-icons/fi';
 import { useState } from 'react';
 import { sendContactEmail } from '@/lib/contactActions';
 
-export const ContactForm = () => {
+  const ContactForm = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -270,4 +270,4 @@ export const ContactForm = () => {
   );
 };
 
- 
+export default ContactForm;
