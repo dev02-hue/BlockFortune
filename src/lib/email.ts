@@ -203,3 +203,26 @@ export async function sendWithdrawalConfirmationToUser(params: {
     console.error('Failed to send withdrawal confirmation:', error)
   }
 }
+
+
+export async function sendVerificationRequestToAdmin(params: {
+  userId: string;
+  userEmail: string;
+  userName: string;
+  verificationId: string;
+}) {
+  // Implement your email sending logic here
+  // This should notify admin that a new verification request needs review
+  console.log(`New verification request from ${params.userName} (${params.userEmail})`, params)
+}
+
+export async function sendVerificationStatusToUser(params: {
+  userEmail: string;
+  userName: string;
+  status: 'approved' | 'rejected';
+  notes?: string;
+}) {
+  // Implement your email sending logic here
+  // This should notify user about their verification status
+  console.log(`Verification ${params.status} for ${params.userName} (${params.userEmail})`, params)
+}

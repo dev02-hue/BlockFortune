@@ -34,6 +34,7 @@ import {
 import { FaBitcoin, FaEthereum } from 'react-icons/fa'
 import { SiLitecoin, SiDogecoin, SiRipple } from 'react-icons/si'
 import { TbCurrencyDollar, TbCurrencyEuro, TbCurrencyPound } from 'react-icons/tb'
+import { getTotalCompletedDeposits, getTotalCompletedWithdrawals, getTotalPendingWithdrawals } from '@/lib/deposit'
 
 // API endpoints
 const COINGECKO_API = 'https://api.coingecko.com/api/v3'
@@ -90,6 +91,9 @@ export default function ProfessionalDashboard() {
   const [cryptoData, setCryptoData] = useState<CryptoData[]>([])
   const [forexData, setForexData] = useState<ForexData | null>(null)
   const [news, setNews] = useState<NewsItem[]>([])
+  const [totalDeposits, setTotalDeposits] = useState<number>(0)  
+  const [totalPendingWithdrawals, setTotalPendingWithdrawals] = useState<number>(0)
+  const [totalCompletedWithdrawals, setTotalCompletedWithdrawals] = useState<number>(0)
   const [loading, setLoading] = useState({
     user: true,
     crypto: true,
@@ -104,6 +108,29 @@ export default function ProfessionalDashboard() {
     try {
       // User data
       const userResult = await getUserData()
+      const depositsResult = await getTotalCompletedDeposits()
+      const pendingWithdrawalsResult = await getTotalPendingWithdrawals()
+       const completedWithdrawalsResult = await getTotalCompletedWithdrawals()
+      
+      if (depositsResult.error) {
+        console.error(depositsResult.error)
+      } else {
+        setTotalDeposits(depositsResult.total || 0)
+      }   
+      if (pendingWithdrawalsResult.error) {
+        console.error(pendingWithdrawalsResult.error)
+      } else {
+        setTotalPendingWithdrawals(pendingWithdrawalsResult.total || 0)
+      }
+
+      if (completedWithdrawalsResult.error) {
+        console.error(completedWithdrawalsResult.error)
+      } else {
+        // Use this wherever you need completed withdrawals total
+        setTotalCompletedWithdrawals(completedWithdrawalsResult.total || 0)
+      }      
+
+
       if (userResult.error) throw new Error(userResult.error)
       if (userResult.user) {
         setUserData(userResult.user)
@@ -166,10 +193,10 @@ export default function ProfessionalDashboard() {
     if (!userData) return []
     return [
       { name: 'Balance', value: userData.balance },
-      { name: 'Active Deposit', value: userData.activeDeposit },
+      { name: 'Active Deposit', value: totalDeposits },
       { name: 'Earned Total', value: userData.earnedTotal },
-      { name: 'Pending', value: userData.pendingWithdrawal },
-      { name: 'Withdrawn', value: userData.withdrawalTotal },
+      { name: 'Pending withdrawal', value: totalPendingWithdrawals },
+      { name: 'Withdrawn', value: totalCompletedWithdrawals },
     ].filter(item => item.value > 0)
   }
 
@@ -307,7 +334,7 @@ export default function ProfessionalDashboard() {
                 <div className="bg-green-50 p-3 rounded-lg border-l-4 border-green-500">
                   <p className="text-black text-xs">Active Deposit</p>
                   <p className="text-lg font-bold text-green-700">
-                    {formatCurrency(userData.activeDeposit)}
+                    {formatCurrency(totalDeposits)}
                   </p>
                 </div>
 

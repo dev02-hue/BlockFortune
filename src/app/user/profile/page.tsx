@@ -19,6 +19,7 @@ import {
   PieChart, 
   Pie
 } from 'recharts'
+import { getTotalCompletedDeposits, getTotalCompletedWithdrawals, getTotalPendingWithdrawals } from '@/lib/deposit'
 
 interface UserData {
   id: string
@@ -31,6 +32,9 @@ interface UserData {
   withdrawalTotal: number
   earnedTotal: number
   balance: number
+  totalDeposits?: number 
+  totalPendingWithdrawals?:number
+  totalCompletedWithdrawals?:number
 }
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
@@ -40,17 +44,43 @@ export default function UserProfile() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeChart, setActiveChart] = useState<'bar' | 'pie'>('bar')
+  const [totalDeposits, setTotalDeposits] = useState<number>(0)  
+  const [totalPendingWithdrawals, setTotalPendingWithdrawals] = useState<number>(0)
+  const [totalCompletedWithdrawals, setTotalCompletedWithdrawals] = useState<number>(0)
+
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true)
         const result = await getUserData()
+        const depositsResult = await getTotalCompletedDeposits()
+        const pendingWithdrawalsResult = await getTotalPendingWithdrawals()
+        const completedWithdrawalsResult = await getTotalCompletedWithdrawals()
         
         if (result.error) {
           setError(result.error)
         } else if (result.user) {
           setUserData(result.user)
+        }
+        
+        if (depositsResult.error) {
+          console.error(depositsResult.error)
+        } else {
+          setTotalDeposits(depositsResult.total || 0)
+        }
+  
+        if (pendingWithdrawalsResult.error) {
+          console.error(pendingWithdrawalsResult.error)
+        } else {
+          setTotalPendingWithdrawals(pendingWithdrawalsResult.total || 0)
+        }
+  
+        if (completedWithdrawalsResult.error) {
+          console.error(completedWithdrawalsResult.error)
+        } else {
+          // Use this wherever you need completed withdrawals total
+          setTotalCompletedWithdrawals(completedWithdrawalsResult.total || 0)
         }
       } catch (err) {
         setError('Failed to load user data')
@@ -59,9 +89,10 @@ export default function UserProfile() {
         setLoading(false)
       }
     }
-
+  
     fetchData()
   }, [])
+
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -77,10 +108,10 @@ export default function UserProfile() {
     
     return [
       { name: 'Balance', value: userData.balance },
-      { name: 'Active Deposit', value: userData.activeDeposit },
       { name: 'Earned Total', value: userData.earnedTotal },
-      { name: 'Pending Withdrawal', value: userData.pendingWithdrawal },
-      { name: 'Withdrawn Total', value: userData.withdrawalTotal },
+       { name: 'Pending Withdrawal', value: totalPendingWithdrawals }, 
+      { name: 'Withdrawn Total', value: totalCompletedWithdrawals },
+      { name: 'Total Deposits', value: totalDeposits }, 
     ].filter(item => item.value > 0)
   }
 
@@ -135,8 +166,8 @@ export default function UserProfile() {
             >
               <FaUser size={20} className="sm:w-6 sm:h-6" />
             </motion.div>
-            <div className="text-center xs:text-left">
-              <h1 className="text-xl sm:text-2xl font-bold line-clamp-1">
+            <div className="text-center xs:text-left text-black">
+              <h1 className="text-xl sm:text-2xl text-black font-bold line-clamp-1">
                 {userData.firstName} {userData.lastName}
               </h1>
               <p className="text-blue-100 text-sm sm:text-base">@{userData.username}</p>
@@ -152,7 +183,7 @@ export default function UserProfile() {
               <FaUser className="mr-2 text-blue-600 w-4 h-4 sm:w-5 sm:h-5" />
               Personal Information
             </h2>
-            <div className="grid grid-cols-1 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:gap-4 text-black">
               <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
                 <p className="text-gray-500 text-xs sm:text-sm">Full Name</p>
                 <p className="font-medium text-sm sm:text-base">
@@ -176,55 +207,55 @@ export default function UserProfile() {
               Financial Overview
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {[
-                {
-                  name: 'Account Balance',
-                  value: userData.balance,
-                  icon: <GiMoneyStack className="text-blue-600 w-5 h-5 sm:w-6 sm:h-6" />,
-                  color: 'blue'
-                },
-                {
-                  name: 'Active Deposit',
-                  value: userData.activeDeposit,
-                  icon: <FaMoneyBillWave className="text-green-600 w-5 h-5 sm:w-6 sm:h-6" />,
-                  color: 'green'
-                },
-                {
-                  name: 'Total Earned',
-                  value: userData.earnedTotal,
-                  icon: <FaChartLine className="text-purple-600 w-5 h-5 sm:w-6 sm:h-6" />,
-                  color: 'purple'
-                },
-                {
-                  name: 'Pending Withdrawal',
-                  value: userData.pendingWithdrawal,
-                  icon: <MdPendingActions className="text-yellow-600 w-5 h-5 sm:w-6 sm:h-6" />,
-                  color: 'yellow'
-                },
-                {
-                  name: 'Total Withdrawn',
-                  value: userData.withdrawalTotal,
-                  icon: <FaMoneyBillWave className="text-red-600 w-5 h-5 sm:w-6 sm:h-6" />,
-                  color: 'red'
-                }
-              ].map((item, index) => (
-                <motion.div
-                  key={index}
-                  whileHover={{ y: -3 }}
-                  className={`bg-${item.color}-50 p-3 sm:p-4 rounded-lg border-l-4 border-${item.color}-500`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-500 text-xs sm:text-sm">{item.name}</p>
-                      <p className={`text-lg sm:text-xl font-bold text-${item.color}-700`}>
-                        {formatCurrency(item.value)}
-                      </p>
-                    </div>
-                    {item.icon}
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+  {[
+    {
+      name: 'Account Balance',
+      value: userData.balance,
+      icon: <GiMoneyStack className="text-blue-600 w-5 h-5 sm:w-6 sm:h-6" />,
+      color: 'blue'
+    },
+    {
+      name: 'Total Deposits',
+      value: totalDeposits,
+      icon: <FaMoneyBillWave className="text-green-600 w-5 h-5 sm:w-6 sm:h-6" />,
+      color: 'green'
+    },
+    {
+      name: 'Total Earned',
+      value: userData.earnedTotal,
+      icon: <FaChartLine className="text-purple-600 w-5 h-5 sm:w-6 sm:h-6" />,
+      color: 'purple'
+    },
+    {
+      name: 'Pending Withdrawal',
+      value: totalPendingWithdrawals, // Use the state value here
+      icon: <MdPendingActions className="text-yellow-600 w-5 h-5 sm:w-6 sm:h-6" />,
+      color: 'yellow'
+    },
+    {
+      name: 'Total Withdrawn',
+      value: totalCompletedWithdrawals,
+      icon: <FaMoneyBillWave className="text-red-600 w-5 h-5 sm:w-6 sm:h-6" />,
+      color: 'red'
+    }
+  ].map((item, index) => (
+    <motion.div
+      key={index}
+      whileHover={{ y: -3 }}
+      className={`bg-${item.color}-50 p-3 sm:p-4 rounded-lg border-l-4 border-${item.color}-500`}
+    >
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-gray-500 text-xs sm:text-sm">{item.name}</p>
+          <p className={`text-lg sm:text-xl font-bold text-${item.color}-700`}>
+            {formatCurrency(item.value)}
+          </p>
+        </div>
+        {item.icon}
+      </div>
+    </motion.div>
+  ))}
+</div>
           </div>
 
           {/* Financial Chart */}
@@ -310,13 +341,13 @@ export default function UserProfile() {
           >
             <h3 className="text-base sm:text-lg font-semibold mb-2">Your Financial Summary</h3>
             <p className="mb-3 text-sm sm:text-base">
-              You currently have {formatCurrency(userData.activeDeposit)} actively invested, 
-              with {formatCurrency(userData.pendingWithdrawal)} pending withdrawal.
+              You currently have {formatCurrency(userData.balance)} actively invested, 
+              with {formatCurrency(totalPendingWithdrawals)} pending withdrawal.
             </p>
             <div className="flex justify-between items-center">
               <span className="text-xs sm:text-sm">Net Worth</span>
               <span className="text-lg sm:text-xl font-bold">
-                {formatCurrency(userData.balance + userData.activeDeposit)}
+                {formatCurrency(userData.balance)}
               </span>
             </div>
           </motion.div>

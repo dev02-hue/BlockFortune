@@ -1,140 +1,90 @@
-'use client';
+"use client";
 
-import { FiFacebook, FiTwitter, FiInstagram, FiLinkedin, FiMail, FiPhone, FiMapPin } from 'react-icons/fi';
-import { motion } from 'framer-motion';
+import {
+  FaInstagram,
+  FaLinkedinIn,
+  FaTwitter,
+  FaFacebookF,
+  FaPhoneAlt,
+  FaEnvelope,
+  FaMapMarkerAlt,
+} from "react-icons/fa";
 
-const Footer = ({ darkMode }: { darkMode: boolean }) => {
-  const currentYear = new Date().getFullYear();
-
+const Footer = () => {
   return (
-    <footer className={`border-t ${darkMode ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'}`}>
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Company Info */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-800'}`}>
-              BlockFortune
-            </h3>
-            <p className={`mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              Your trusted partner in wealth creation through innovative investment solutions.
-            </p>
-            <div className="flex space-x-4">
-              <a href="#" aria-label="Facebook" className={`p-2 rounded-full ${darkMode ? 'bg-gray-800 hover:bg-gray-700 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
-                <FiFacebook size={18} />
-              </a>
-              <a href="#" aria-label="Twitter" className={`p-2 rounded-full ${darkMode ? 'bg-gray-800 hover:bg-gray-700 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
-                <FiTwitter size={18} />
-              </a>
-              <a href="#" aria-label="Instagram" className={`p-2 rounded-full ${darkMode ? 'bg-gray-800 hover:bg-gray-700 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
-                <FiInstagram size={18} />
-              </a>
-              <a href="#" aria-label="LinkedIn" className={`p-2 rounded-full ${darkMode ? 'bg-gray-800 hover:bg-gray-700 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
-                <FiLinkedin size={18} />
-              </a>
-            </div>
-          </motion.div>
-
-          {/* Quick Links */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-800'}`}>
-              Quick Links
-            </h3>
-            <ul className="space-y-2">
-              {[
-                { name: 'Home', href: '#' },
-                { name: 'About Us', href: '#' },
-                { name: 'Investment Plans', href: '#' },
-                { name: 'FAQ', href: '#' },
-                { name: 'Contact', href: '#' },
-              ].map((link, index) => (
-                <li key={index}>
-                  <a
-                    href={link.href}
-                    className={`hover:text-blue-500 transition-colors ${darkMode ? 'text-gray-400 hover:text-blue-400' : 'text-gray-600 hover:text-blue-500'}`}
-                  >
-                    {link.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-
-          {/* Investment Plans */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-800'}`}>
-              Investment Plans
-            </h3>
-            <ul className="space-y-2">
-              {plans.map((plan, index) => (
-                <li key={index}>
-                  <a
-                    href="#"
-                    className={`hover:text-blue-500 transition-colors ${darkMode ? 'text-gray-400 hover:text-blue-400' : 'text-gray-600 hover:text-blue-500'}`}
-                  >
-                    {plan.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-
-          {/* Contact Info */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-800'}`}>
-              Contact Us
-            </h3>
-            <ul className="space-y-3">
-              <li className="flex items-start">
-                <FiMail className={`mt-1 mr-3 flex-shrink-0 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`} />
-                <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>blockfortunevercelteam@gmail.com</span>
-              </li>
-              <li className="flex items-start">
-                <FiPhone className={`mt-1 mr-3 flex-shrink-0 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`} />
-                <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>+1 (848) 316-8766</span>
-              </li>
-              <li className="flex items-start">
-                <FiMapPin className={`mt-1 mr-3 flex-shrink-0 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`} />
-                <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>123 Financial District, New York, NY 10005</span>
-              </li>
-            </ul>
-          </motion.div>
-        </div>
-
-        {/* Divider */}
-        <div className={`border-t my-8 ${darkMode ? 'border-gray-800' : 'border-gray-200'}`}></div>
-
-        {/* Bottom Footer */}
-        <div className="flex flex-col md:flex-row justify-between items-center">
-          <p className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-400'} mb-4 md:mb-0`}>
-            © {currentYear} BlockFortune. All rights reserved.
+    <footer className="bg-[#003322] text-white pt-16 pb-8 px-6 md:px-12 relative">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 border-b border-white/10 pb-10">
+        {/* Logo & Description */}
+        <div className="space-y-6">
+          <h2 className="text-3xl font-bold text-lime-500">BlockFortune</h2>
+          <p className="text-sm leading-relaxed text-gray-200">
+            We are an international financial company engaged in investment
+            activities, which are related to trading on financial markets and
+            cryptocurrency exchanges performed by qualified professional
+            traders. Alpha Capital Limited is registered and located at 27
+            Frankley Road, New Plymouth Central, New Zealand.
           </p>
-          <div className="flex space-x-6">
-            <a href="#" className={`text-sm hover:text-blue-500 transition-colors ${darkMode ? 'text-gray-400 hover:text-blue-400' : 'text-gray-600 hover:text-blue-500'}`}>
-              Privacy Policy
+
+          {/* Socials */}
+          <div className="flex space-x-4 pt-4">
+            <a href="#" className="p-2 rounded-full bg-[#00271D] hover:bg-lime-500 hover:text-black transition">
+              <FaInstagram size={18} />
             </a>
-            <a href="#" className={`text-sm hover:text-blue-500 transition-colors ${darkMode ? 'text-gray-400 hover:text-blue-400' : 'text-gray-600 hover:text-blue-500'}`}>
-              Terms of Service
+            <a href="#" className="p-2 rounded-full bg-[#00271D] hover:bg-lime-500 hover:text-black transition">
+              <FaLinkedinIn size={18} />
             </a>
-            <a href="#" className={`text-sm hover:text-blue-500 transition-colors ${darkMode ? 'text-gray-400 hover:text-blue-400' : 'text-gray-600 hover:text-blue-500'}`}>
-              Risk Disclosure
+            <a href="#" className="p-2 rounded-full bg-[#00271D] hover:bg-lime-500 hover:text-black transition">
+              <FaTwitter size={18} />
+            </a>
+            <a href="#" className="p-2 rounded-full bg-[#00271D] hover:bg-lime-500 hover:text-black transition">
+              <FaFacebookF size={18} />
             </a>
           </div>
+        </div>
+
+        {/* Useful Links */}
+        <div className="space-y-4">
+          <h4 className="text-lg font-semibold text-white">Useful Links</h4>
+          <ul className="space-y-2 text-sm text-gray-300">
+            <li><a href="#">Software Corner</a></li>
+            <li><a href="#">Application Center</a></li>
+            <li><a href="#">Research Section</a></li>
+            <li><a href="#">Developing Corner</a></li>
+          </ul>
+        </div>
+
+        {/* Contact */}
+        <div className="space-y-4">
+          <h4 className="text-lg font-semibold text-white">Contact</h4>
+          <ul className="space-y-4 text-sm text-gray-300">
+            <li className="flex items-center gap-2">
+              <FaPhoneAlt className="text-lime-400" />
+              <span>+447552536736</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <FaEnvelope className="text-lime-400" />
+              <span>support@accilentfinlimited.com</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <FaMapMarkerAlt className="text-lime-400 mt-1" />
+              <span>
+                27 Frankley Road<br />
+                New Plymouth Central,<br />
+                New Zealand
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Bottom Bar */}
+      <div className="text-xs text-gray-400 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
+        <p>© BlockFortune Limited 2020 | All Rights Reserved</p>
+        <div className="flex gap-6">
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+          <a href="#">Sitemap</a>
+          <a href="#">Help</a>
         </div>
       </div>
     </footer>
@@ -142,60 +92,3 @@ const Footer = ({ darkMode }: { darkMode: boolean }) => {
 };
 
 export default Footer;
-
-const plans = [
-  {
-    name: "XP-FLASH",
-    dailyROI: 2.5,
-    min: 100,
-    max: 2999,
-    duration: 6,
-    affiliate: 7,
-    color: "bg-blue-500"
-  },
-  {
-    name: "XP-MINER",
-    dailyROI: 4.5,
-    min: 3000,
-    max: 5999,
-    duration: 7,
-    affiliate: 7,
-    color: "bg-purple-500"
-  },
-  {
-    name: "XP-POOL",
-    dailyROI: 7.8,
-    min: 6000,
-    max: 9999,
-    duration: 8,
-    affiliate: 7,
-    color: "bg-indigo-500"
-  },
-  {
-    name: "FOREX",
-    dailyROI: 1.4,
-    min: 7560,
-    max: 9999,
-    duration: 35,
-    affiliate: 7,
-    color: "bg-green-500"
-  },
-  {
-    name: "AGRI",
-    dailyROI: 1.6,
-    min: 10000,
-    max: 24999,
-    duration: 60,
-    affiliate: 7,
-    color: "bg-amber-500"
-  },
-  {
-    name: "REAL EST",
-    dailyROI: 1.8,
-    min: 25000,
-    max: 500000,
-    duration: 90,
-    affiliate: 7,
-    color: "bg-red-500"
-  }
-];
