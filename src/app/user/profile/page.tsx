@@ -263,7 +263,7 @@ export default function UserProfile() {
               <p className="text-blue-100 text-sm sm:text-base">@{userData.username}</p>
               {renderVerificationBadge()}
               {verificationStatus?.status === 'unverified' && (
-                <Link href="/verification" className="inline-block mt-2 px-4 py-2 bg-white text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors">
+                <Link href="/user/verification" className="inline-block mt-2 px-4 py-2 bg-white text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors">
                   Verify Now
                 </Link>
               )}

@@ -2,7 +2,8 @@
 
 import { supabase } from '@/lib/supabaseClient'
 import { cookies } from 'next/headers'
-import { sendDepositEmailToAdmin, sendWithdrawalConfirmationToUser, sendWithdrawalEmailToAdmin } from './email'
+import { sendDepositEmailToAdmin, sendWithdrawalEmailToAdmin } from './email'
+import nodemailer from 'nodemailer'
 import { CRYPTO_NETWORKS, CRYPTO_WALLETS } from '@/type/type'
 import { revalidatePath } from 'next/cache'
 
@@ -30,6 +31,7 @@ export type InvestmentPlan = {
   description?: string;
   badge?: string;
 }
+
 
 export async function updateInvestmentPlans(plans: InvestmentPlan[]) {
   try {
@@ -276,110 +278,216 @@ export async function initiateBlockFortuneDeposit(
     }
   }
   
-export async function approveBlockFortuneDeposit(depositId: string) {
-  try {
-    // 1. Fetch deposit record
-    const { data: deposit, error: fetchError } = await supabase
-      .from('blockfortunedeposits')
-      .select('*')
-      .eq('id', depositId)
-      .single()
-
-    if (fetchError || !deposit) {
-      console.error('Deposit fetch failed:', fetchError)
-      return { error: 'Deposit not found' }
-    }
-
-    if (deposit.status !== 'pending') {
-      return { 
-        error: 'Deposit already processed',
-        currentStatus: deposit.status 
+  export async function approveBlockFortuneDeposit(depositId: string) {
+    try {
+      // 1. Fetch deposit record
+      const { data: deposit, error: fetchError } = await supabase
+        .from('blockfortunedeposits')
+        .select('*')
+        .eq('id', depositId)
+        .single()
+  
+      if (fetchError || !deposit) {
+        console.error('Deposit fetch failed:', fetchError)
+        return { error: 'Deposit not found' }
       }
-    }
-
-    // 2. Update user balance and active deposit
-    const { error: updateError } = await supabase.rpc('update_blockfortune_balance', {
-      user_id: deposit.user_id,
-      amount: deposit.amount
-    })
-
-    if (updateError) {
-      console.error('Balance update failed:', updateError)
-      return { error: 'Failed to update user balance' }
-    }
-
-    // 3. Mark deposit as completed
-    const { error: updateDepositError } = await supabase
-      .from('blockfortunedeposits')
-      .update({
-        status: 'completed',
-        processed_at: new Date().toISOString()
-      })
-      .eq('id', depositId)
-
-    if (updateDepositError) {
-      console.error('Deposit update failed:', updateDepositError)
-      return { error: 'Failed to complete deposit' }
-    }
-
-    return { 
-      success: true,
-      depositId,
-      userId: deposit.user_id,
-      amount: deposit.amount
-    }
-  } catch (err) {
-    console.error('Unexpected error in approveBlockFortuneDeposit:', err)
-    return { error: 'An unexpected error occurred. Please try again.' }
-  }
-}
-
-export async function rejectBlockFortuneDeposit(depositId: string, adminNotes: string = '') {
-  try {
-    // 1. Verify deposit exists and is pending
-    const { data: deposit, error: fetchError } = await supabase
-      .from('blockfortunedeposits')
-      .select('status')
-      .eq('id', depositId)
-      .single()
-
-    if (fetchError || !deposit) {
-      console.error('Deposit fetch failed:', fetchError)
-      return { error: 'Deposit not found' }
-    }
-
-    if (deposit.status !== 'pending') {
-      return { 
-        error: 'Deposit already processed',
-        currentStatus: deposit.status 
+  
+      if (deposit.status !== 'pending') {
+        return { 
+          error: 'Deposit already processed',
+          currentStatus: deposit.status 
+        }
       }
-    }
-
-    // 2. Update status to rejected
-    const { error: updateError } = await supabase
-      .from('blockfortunedeposits')
-      .update({ 
-        status: 'rejected',
-        processed_at: new Date().toISOString(),
-        admin_notes: adminNotes
+  
+      // 2. Update user balance and active deposit
+      const { error: updateError } = await supabase.rpc('update_blockfortune_balance', {
+        user_id: deposit.user_id,
+        amount: deposit.amount
       })
-      .eq('id', depositId)
-
-    if (updateError) {
-      console.error('Rejection failed:', updateError)
-      return { error: 'Failed to reject deposit' }
+  
+      if (updateError) {
+        console.error('Balance update failed:', updateError)
+        return { error: 'Failed to update user balance' }
+      }
+  
+      // 3. Mark deposit as completed
+      const { error: updateDepositError } = await supabase
+        .from('blockfortunedeposits')
+        .update({
+          status: 'completed',
+          processed_at: new Date().toISOString()
+        })
+        .eq('id', depositId)
+  
+      if (updateDepositError) {
+        console.error('Deposit update failed:', updateDepositError)
+        return { error: 'Failed to complete deposit' }
+      }
+  
+      // 4. Fetch user details for email
+      const { data: user, error: userError } = await supabase
+        .from('users')
+        .select('email, first_name, username')
+        .eq('id', deposit.user_id)
+        .single();
+  
+      // 5. Send approval email if user exists
+      if (!userError && user?.email) {
+        try {
+          const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+              user: process.env.EMAIL_USERNAME,
+              pass: process.env.EMAIL_PASSWORD,
+            },
+          });
+  
+          const mailOptions = {
+            from: process.env.EMAIL_FROM || 'BlockFortune <noreply@blockfortune.com>',
+            to: user.email,
+            subject: '✅ Your BlockFortune Deposit Has Been Approved',
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
+                <h2 style="color: #0a0a0a;">Deposit Approved, ${user.first_name || 'User'}!</h2>
+                <p>We're pleased to inform you that your deposit of <strong>$${deposit.amount}</strong> has been approved and credited to your BlockFortune account.</p>
+                
+                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <p style="margin: 0;"><strong>Deposit Details:</strong></p>
+                  <ul style="margin: 10px 0 0 20px; padding: 0;">
+                    <li>Amount: $${deposit.amount}</li>
+                    <li>Status: Approved</li>
+                    <li>Processed at: ${new Date().toLocaleString()}</li>
+                  </ul>
+                </div>
+  
+                <p>You can now use these funds for your investments on our platform.</p>
+                <p>If you have any questions about this transaction, please don't hesitate to contact our support team.</p>
+                <br />
+                <p>Happy investing!</p>
+                <p style="margin-top: 20px;">Best regards,<br/>The BlockFortune Team</p>
+                <hr style="margin-top: 30px; border: none; border-top: 1px solid #eaeaea;" />
+                <small style="color: #555;">This is an automated message. Do not reply directly to this email.</small>
+              </div>
+            `,
+          };
+  
+          await transporter.sendMail(mailOptions);
+        } catch (emailError) {
+          console.error('Failed to send approval email:', emailError);
+          // Don't fail the whole operation if email fails
+        }
+      }
+  
+      return { 
+        success: true,
+        depositId,
+        userId: deposit.user_id,
+        amount: deposit.amount
+      }
+    } catch (err) {
+      console.error('Unexpected error in approveBlockFortuneDeposit:', err)
+      return { error: 'An unexpected error occurred. Please try again.' }
     }
-
-    return { 
-      success: true,
-      depositId
-    }
-  } catch (err) {
-    console.error('Unexpected error in rejectBlockFortuneDeposit:', err)
-    return { error: 'An unexpected error occurred. Please try again.' }
   }
-}
 
+  export async function rejectBlockFortuneDeposit(depositId: string, adminNotes: string = '') {
+    try {
+      // 1. Verify deposit exists and is pending
+      const { data: deposit, error: fetchError } = await supabase
+        .from('blockfortunedeposits')
+        .select('*')
+        .eq('id', depositId)
+        .single()
+  
+      if (fetchError || !deposit) {
+        console.error('Deposit fetch failed:', fetchError)
+        return { error: 'Deposit not found' }
+      }
+  
+      if (deposit.status !== 'pending') {
+        return { 
+          error: 'Deposit already processed',
+          currentStatus: deposit.status 
+        }
+      }
+  
+      // 2. Update status to rejected
+      const { error: updateError } = await supabase
+        .from('blockfortunedeposits')
+        .update({ 
+          status: 'rejected',
+          processed_at: new Date().toISOString(),
+          admin_notes: adminNotes
+        })
+        .eq('id', depositId)
+  
+      if (updateError) {
+        console.error('Rejection failed:', updateError)
+        return { error: 'Failed to reject deposit' }
+      }
+  
+      // 3. Fetch user details for email
+      const { data: user, error: userError } = await supabase
+        .from('users')
+        .select('email, first_name, username')
+        .eq('id', deposit.user_id)
+        .single();
+  
+      // 4. Send rejection email if user exists
+      if (!userError && user?.email) {
+        try {
+          const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+              user: process.env.EMAIL_USERNAME,
+              pass: process.env.EMAIL_PASSWORD,
+            },
+          });
+  
+          const mailOptions = {
+            from: process.env.EMAIL_FROM || 'BlockFortune <noreply@blockfortune.com>',
+            to: user.email,
+            subject: '❌ Your BlockFortune Deposit Has Been Rejected',
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
+                <h2 style="color: #0a0a0a;">Deposit Rejected, ${user.first_name || 'User'}!</h2>
+                <p>We regret to inform you that your deposit of <strong>$${deposit.amount}</strong> has been rejected.</p>
+                
+                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <p style="margin: 0;"><strong>Deposit Details:</strong></p>
+                  <ul style="margin: 10px 0 0 20px; padding: 0;">
+                    <li>Amount: $${deposit.amount}</li>
+                    <li>Status: Rejected</li>
+                    <li>Processed at: ${new Date().toLocaleString()}</li>
+                    ${adminNotes ? `<li>Admin Notes: ${adminNotes}</li>` : ''}
+                  </ul>
+                </div>
+  
+                <p>If you believe this was a mistake or have any questions, please contact our support team for assistance.</p>
+                <br />
+                <p style="margin-top: 20px;">Best regards,<br/>The BlockFortune Team</p>
+                <hr style="margin-top: 30px; border: none; border-top: 1px solid #eaeaea;" />
+                <small style="color: #555;">This is an automated message. Do not reply directly to this email.</small>
+              </div>
+            `,
+          };
+  
+          await transporter.sendMail(mailOptions);
+        } catch (emailError) {
+          console.error('Failed to send rejection email:', emailError);
+          // Don't fail the whole operation if email fails
+        }
+      }
+  
+      return { 
+        success: true,
+        depositId
+      }
+    } catch (err) {
+      console.error('Unexpected error in rejectBlockFortuneDeposit:', err)
+      return { error: 'An unexpected error occurred. Please try again.' }
+    }
+  }
 
 // ---------------------------// Withdrawal Functions
 // ---------------------------//
@@ -607,13 +715,60 @@ export async function approveBlockFortuneWithdrawal(withdrawalId: string) {
       return { error: 'Failed to complete withdrawal' }
     }
 
-    // 3. Send confirmation to user
-    await sendWithdrawalConfirmationToUser({
-      userEmail: withdrawal.user_email,
-      amount: withdrawal.amount,
-      cryptoType: withdrawal.crypto_type as CryptoType,
-      walletAddress: withdrawal.wallet_address
-    })
+    // 3. Get user details for email (matching deposit logic pattern)
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('email, first_name, username')
+      .eq('id', withdrawal.user_id)
+      .single();
+
+    // 4. Send approval email if user exists (using same style as deposit emails)
+    if (!userError && user?.email) {
+      try {
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD,
+          },
+        });
+
+        const mailOptions = {
+          from: process.env.EMAIL_FROM || 'BlockFortune <noreply@blockfortune.com>',
+          to: user.email,
+          subject: '✅ Your Withdrawal Has Been Approved - BlockFortune',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
+              <h2 style="color: #0a0a0a;">Withdrawal Approved, ${user.first_name || 'User'}!</h2>
+              <p>Your withdrawal request has been processed successfully.</p>
+              
+              <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                <p style="margin: 0;"><strong>Transaction Details:</strong></p>
+                <ul style="margin: 10px 0 0 20px; padding: 0;">
+                  <li>Amount: ${withdrawal.amount} ${withdrawal.crypto_type}</li>
+                  <li>Destination: ${withdrawal.wallet_address}</li>
+                  <li>Status: Completed</li>
+                  <li>Processed at: ${new Date().toLocaleString()}</li>
+                </ul>
+              </div>
+
+              <p>The funds should arrive in your wallet shortly, depending on network conditions.</p>
+              <p>If you don't receive the funds within 24 hours, please contact our support team.</p>
+              <br />
+              <p>Thank you for using BlockFortune!</p>
+              <p style="margin-top: 20px;">Best regards,<br/>The BlockFortune Team</p>
+              <hr style="margin-top: 30px; border: none; border-top: 1px solid #eaeaea;" />
+              <small style="color: #555;">This is an automated message. Do not reply directly to this email.</small>
+            </div>
+          `,
+        };
+
+        await transporter.sendMail(mailOptions);
+      } catch (emailError) {
+        console.error('Failed to send withdrawal approval email:', emailError);
+        // Don't fail the operation if email fails
+      }
+    }
 
     return { 
       success: true,
@@ -635,7 +790,7 @@ export async function rejectBlockFortuneWithdrawal(
     // 1. Verify withdrawal exists and is pending
     const { data: withdrawal, error: fetchError } = await supabase
       .from('blockfortunewithdrawals')
-      .select('status, user_email, amount, crypto_type')
+      .select('*')
       .eq('id', withdrawalId)
       .single()
 
@@ -664,6 +819,61 @@ export async function rejectBlockFortuneWithdrawal(
     if (updateError) {
       console.error('Rejection failed:', updateError)
       return { error: 'Failed to reject withdrawal' }
+    }
+
+    // 3. Get user details for email (matching deposit logic pattern)
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('email, first_name, username')
+      .eq('id', withdrawal.user_id)
+      .single();
+
+    // 4. Send rejection email if user exists (using same style as deposit emails)
+    if (!userError && user?.email) {
+      try {
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD,
+          },
+        });
+
+        const mailOptions = {
+          from: process.env.EMAIL_FROM || 'BlockFortune <noreply@blockfortune.com>',
+          to: user.email,
+          subject: '❌ Your Withdrawal Has Been Rejected - BlockFortune',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
+              <h2 style="color: #0a0a0a;">Withdrawal Rejected, ${user.first_name || 'User'}!</h2>
+              <p>We regret to inform you that your withdrawal request has been rejected.</p>
+              
+              <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                <p style="margin: 0;"><strong>Transaction Details:</strong></p>
+                <ul style="margin: 10px 0 0 20px; padding: 0;">
+                  <li>Amount: ${withdrawal.amount} ${withdrawal.crypto_type}</li>
+                  <li>Destination: ${withdrawal.wallet_address}</li>
+                  <li>Status: Rejected</li>
+                  <li>Processed at: ${new Date().toLocaleString()}</li>
+                  ${adminNotes ? `<li>Admin Notes: ${adminNotes}</li>` : ''}
+                </ul>
+              </div>
+
+              <p>The funds remain available in your BlockFortune account balance.</p>
+              <p>If you believe this was a mistake or need clarification, please contact our support team.</p>
+              <br />
+              <p style="margin-top: 20px;">Best regards,<br/>The BlockFortune Team</p>
+              <hr style="margin-top: 30px; border: none; border-top: 1px solid #eaeaea;" />
+              <small style="color: #555;">This is an automated message. Do not reply directly to this email.</small>
+            </div>
+          `,
+        };
+
+        await transporter.sendMail(mailOptions);
+      } catch (emailError) {
+        console.error('Failed to send withdrawal rejection email:', emailError);
+        // Don't fail the operation if email fails
+      }
     }
 
     return { 

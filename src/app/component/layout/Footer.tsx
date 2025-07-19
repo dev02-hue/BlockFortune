@@ -59,11 +59,11 @@ const Footer = () => {
           <ul className="space-y-4 text-sm text-gray-300">
             <li className="flex items-center gap-2">
               <FaPhoneAlt className="text-lime-400" />
-              <span>+447552536736</span>
+              <span>+1 (848) 316-8766</span>
             </li>
             <li className="flex items-center gap-2">
               <FaEnvelope className="text-lime-400" />
-              <span>support@accilentfinlimited.com</span>
+              <span>blockfortunevercelsteam@gmail.com</span>
             </li>
             <li className="flex items-start gap-2">
               <FaMapMarkerAlt className="text-lime-400 mt-1" />
