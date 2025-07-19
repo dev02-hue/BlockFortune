@@ -190,7 +190,7 @@ const LoginForm = () => {
                     placeholder="Enter your username"
                     value={form.username}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-4 py-3 text-sm sm:text-base border ${
+                    className={`w-full text-black  pl-10 pr-4 py-3 text-sm sm:text-base border ${
                       errors.username ? "border-red-300 focus:ring-red-500" : "border-gray-300 focus:ring-emerald-500"
                     } rounded-lg focus:ring-2 focus:border-transparent transition placeholder-gray-400`}
                   />
@@ -216,7 +216,7 @@ const LoginForm = () => {
                     placeholder="Enter your password"
                     value={form.password}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-10 py-3 text-sm sm:text-base border ${
+                    className={`w-full text-black pl-10 pr-10 py-3 text-sm sm:text-base border ${
                       errors.password ? "border-red-300 focus:ring-red-500" : "border-gray-300 focus:ring-emerald-500"
                     } rounded-lg focus:ring-2 focus:border-transparent transition placeholder-gray-400`}
                   />

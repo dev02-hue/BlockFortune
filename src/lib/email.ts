@@ -1,5 +1,13 @@
 import nodemailer from 'nodemailer'
 
+interface VerificationRequest {
+  userEmail: string
+  userId: string
+  userName: string
+  documentType: string
+  verificationId: string
+}
+
 export async function sendDepositEmailToAdmin(params: {
   userEmail: string
   amount: number
@@ -7,6 +15,7 @@ export async function sendDepositEmailToAdmin(params: {
   userId: string
   cryptoType: string
   transactionId: string
+  planName?: string
 }) {
   try {
     const transporter = nodemailer.createTransport({
@@ -225,4 +234,26 @@ export async function sendVerificationStatusToUser(params: {
   // Implement your email sending logic here
   // This should notify user about their verification status
   console.log(`Verification ${params.status} for ${params.userName} (${params.userEmail})`, params)
+}
+
+export async function sendVerificationEmailToAdmin(request: VerificationRequest) {
+  // In a real app, you would send an email here
+  // For this fake version, we'll just log to console
+  
+  console.log('--- ADMIN NOTIFICATION ---')
+  console.log('New verification request received:')
+  console.log(`User: ${request.userName} (${request.userEmail})`)
+  console.log(`User ID: ${request.userId}`)
+  console.log(`Document Type: ${request.documentType}`)
+  console.log(`Verification ID: ${request.verificationId}`)
+  console.log('--------------------------')
+
+  // In a real implementation, you might use:
+  // - Nodemailer
+  // - SendGrid
+  // - AWS SES
+  // - Resend
+  // Or any other email service
+
+  return { success: true }
 }

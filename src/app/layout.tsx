@@ -4,8 +4,7 @@ import "./globals.css";
 import Navbar from "./component/layout/Navbar";
 import Footer from "./component/layout/Footer";
 import LayoutVisibility from "./component/layout/LayoutVisibility";
-import { ThemeProvider } from "next-themes";
-
+ 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -29,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        
           <LayoutVisibility>
             <Navbar />
           </LayoutVisibility>
@@ -39,7 +38,7 @@ export default function RootLayout({
           <LayoutVisibility>
             <Footer  />
           </LayoutVisibility>
-        </ThemeProvider>
+        
       </body>
     </html>
   );

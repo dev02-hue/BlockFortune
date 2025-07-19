@@ -56,14 +56,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <FiDownload />Withdrawals Table
           </Link>
           <Link 
-            href="/admin/reports" 
+            href="/admin/verification" 
             className="flex items-center hover:bg-gray-700 px-4 py-2 rounded gap-2"
             onClick={() => setIsSidebarOpen(false)}
           >
-            <FiFileText /> Reports
+            <FiFileText />User verification
           </Link>
           <Link 
-            href="/admin/investment-management" 
+            href="/admin/investment-plans" 
             className="flex items-center hover:bg-gray-700 px-4 py-2 rounded gap-2"
             onClick={() => setIsSidebarOpen(false)}
           >
