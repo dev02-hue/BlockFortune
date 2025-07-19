@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { FaUser, FaWallet, FaMoneyBillWave, FaChartLine, FaEnvelope } from 'react-icons/fa'
+import { FaUser, FaWallet, FaMoneyBillWave, FaChartLine, FaEnvelope, FaCheckCircle, FaTimesCircle, FaClock } from 'react-icons/fa'
 import { GiMoneyStack } from 'react-icons/gi'
 import { MdPendingActions } from 'react-icons/md'
 import { useEffect, useState } from 'react'
@@ -20,6 +20,8 @@ import {
   Pie
 } from 'recharts'
 import { getTotalCompletedDeposits, getTotalCompletedWithdrawals, getTotalPendingWithdrawals } from '@/lib/deposit'
+import Link from 'next/link'
+import { getVerificationStatus } from '@/lib/profile'
 
 interface UserData {
   id: string
@@ -37,6 +39,13 @@ interface UserData {
   totalCompletedWithdrawals?:number
 }
 
+interface VerificationStatus {
+  status: string
+  rejectionReason: string | null
+  verifiedAt: string | null
+  error?: string
+}
+
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 export default function UserProfile() {
@@ -47,7 +56,7 @@ export default function UserProfile() {
   const [totalDeposits, setTotalDeposits] = useState<number>(0)  
   const [totalPendingWithdrawals, setTotalPendingWithdrawals] = useState<number>(0)
   const [totalCompletedWithdrawals, setTotalCompletedWithdrawals] = useState<number>(0)
-
+  const [verificationStatus, setVerificationStatus] = useState<VerificationStatus | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -57,6 +66,7 @@ export default function UserProfile() {
         const depositsResult = await getTotalCompletedDeposits()
         const pendingWithdrawalsResult = await getTotalPendingWithdrawals()
         const completedWithdrawalsResult = await getTotalCompletedWithdrawals()
+        const verificationResult = await getVerificationStatus()
         
         if (result.error) {
           setError(result.error)
@@ -79,8 +89,17 @@ export default function UserProfile() {
         if (completedWithdrawalsResult.error) {
           console.error(completedWithdrawalsResult.error)
         } else {
-          // Use this wherever you need completed withdrawals total
           setTotalCompletedWithdrawals(completedWithdrawalsResult.total || 0)
+        }
+
+        if (verificationResult.error) {
+          console.error(verificationResult.error)
+        } else {
+          setVerificationStatus({
+            status: verificationResult.status,
+            rejectionReason: verificationResult.rejectionReason,
+            verifiedAt: verificationResult.verifiedAt
+          })
         }
       } catch (err) {
         setError('Failed to load user data')
@@ -92,7 +111,6 @@ export default function UserProfile() {
   
     fetchData()
   }, [])
-
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -109,10 +127,46 @@ export default function UserProfile() {
     return [
       { name: 'Balance', value: userData.balance },
       { name: 'Earned Total', value: userData.earnedTotal },
-       { name: 'Pending Withdrawal', value: totalPendingWithdrawals }, 
+      { name: 'Pending Withdrawal', value: totalPendingWithdrawals }, 
       { name: 'Withdrawn Total', value: totalCompletedWithdrawals },
       { name: 'Total Deposits', value: totalDeposits }, 
     ].filter(item => item.value > 0)
+  }
+
+  const renderVerificationBadge = () => {
+    if (!verificationStatus) return null
+
+    const statusMap: Record<string, { color: string; icon: React.ReactNode; text: string }> = {
+      verified: {
+        color: 'bg-green-100 text-green-800',
+        icon: <FaCheckCircle className="text-green-500" />,
+        text: 'Verified'
+      },
+      pending: {
+        color: 'bg-yellow-100 text-yellow-800',
+        icon: <FaClock className="text-yellow-500" />,
+        text: 'Pending Verification'
+      },
+      rejected: {
+        color: 'bg-red-100 text-red-800',
+        icon: <FaTimesCircle className="text-red-500" />,
+        text: 'Verification Rejected'
+      },
+      unverified: {
+        color: 'bg-gray-100 text-gray-800',
+        icon: <FaTimesCircle className="text-gray-500" />,
+        text: 'Unverified'
+      }
+    }
+
+    const statusInfo = statusMap[verificationStatus.status] || statusMap.unverified
+
+    return (
+      <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusInfo.color} mb-4`}>
+        {statusInfo.icon}
+        <span className="ml-2">{statusInfo.text}</span>
+      </div>
+    )
   }
 
   if (loading) {
@@ -166,11 +220,25 @@ export default function UserProfile() {
             >
               <FaUser size={20} className="sm:w-6 sm:h-6" />
             </motion.div>
-            <div className="text-center xs:text-left text-black">
-              <h1 className="text-xl sm:text-2xl text-black font-bold line-clamp-1">
+            <div className="text-center xs:text-left">
+              <h1 className="text-xl sm:text-2xl font-bold line-clamp-1">
                 {userData.firstName} {userData.lastName}
               </h1>
               <p className="text-blue-100 text-sm sm:text-base">@{userData.username}</p>
+              {renderVerificationBadge()}
+              {verificationStatus?.status === 'unverified' && (
+                <Link href="/verification" className="inline-block mt-2 px-4 py-2 bg-white text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors">
+                  Verify Now
+                </Link>
+              )}
+              {verificationStatus?.status === 'rejected' && verificationStatus.rejectionReason && (
+                <div className="mt-2 text-sm text-red-100">
+                  <p>Reason: {verificationStatus.rejectionReason}</p>
+                  <Link href="/verification" className="inline-block mt-1 px-4 py-2 bg-white text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors">
+                    Resubmit Verification
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -183,20 +251,28 @@ export default function UserProfile() {
               <FaUser className="mr-2 text-blue-600 w-4 h-4 sm:w-5 sm:h-5" />
               Personal Information
             </h2>
-            <div className="grid grid-cols-1 gap-3 sm:gap-4 text-black">
+            <div className="grid grid-cols-1 gap-3 sm:gap-4">
               <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
-                <p className="text-gray-500 text-xs sm:text-sm">Full Name</p>
-                <p className="font-medium text-sm sm:text-base">
+                <p className="text-black text-xs sm:text-sm">Full Name</p>
+                <p className="font-medium text-black text-sm sm:text-base">
                   {userData.firstName} {userData.lastName}
                 </p>
               </div>
               <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
-                <p className="text-gray-500 text-xs sm:text-sm">Email</p>
+                <p className="text-black text-xs sm:text-sm">Email</p>
                 <p className="font-medium text-sm sm:text-base flex items-center">
                   <FaEnvelope className="mr-2 text-blue-600 w-3 h-3 sm:w-4 sm:h-4" />
-                  <span className="truncate">{userData.email}</span>
+                  <span className="truncate text-black">{userData.email}</span>
                 </p>
               </div>
+              {verificationStatus?.verifiedAt && (
+                <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
+                  <p className="text-black text-xs sm:text-sm">Verified Since</p>
+                  <p className="font-medium text-sm sm:text-base text-black">
+                    {new Date(verificationStatus.verifiedAt).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -207,55 +283,55 @@ export default function UserProfile() {
               Financial Overview
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-  {[
-    {
-      name: 'Account Balance',
-      value: userData.balance,
-      icon: <GiMoneyStack className="text-blue-600 w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'blue'
-    },
-    {
-      name: 'Total Deposits',
-      value: totalDeposits,
-      icon: <FaMoneyBillWave className="text-green-600 w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'green'
-    },
-    {
-      name: 'Total Earned',
-      value: userData.earnedTotal,
-      icon: <FaChartLine className="text-purple-600 w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'purple'
-    },
-    {
-      name: 'Pending Withdrawal',
-      value: totalPendingWithdrawals, // Use the state value here
-      icon: <MdPendingActions className="text-yellow-600 w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'yellow'
-    },
-    {
-      name: 'Total Withdrawn',
-      value: totalCompletedWithdrawals,
-      icon: <FaMoneyBillWave className="text-red-600 w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'red'
-    }
-  ].map((item, index) => (
-    <motion.div
-      key={index}
-      whileHover={{ y: -3 }}
-      className={`bg-${item.color}-50 p-3 sm:p-4 rounded-lg border-l-4 border-${item.color}-500`}
-    >
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-gray-500 text-xs sm:text-sm">{item.name}</p>
-          <p className={`text-lg sm:text-xl font-bold text-${item.color}-700`}>
-            {formatCurrency(item.value)}
-          </p>
-        </div>
-        {item.icon}
-      </div>
-    </motion.div>
-  ))}
-</div>
+              {[
+                {
+                  name: 'Account Balance',
+                  value: userData.balance,
+                  icon: <GiMoneyStack className="text-blue-600 w-5 h-5 sm:w-6 sm:h-6" />,
+                  color: 'blue'
+                },
+                {
+                  name: 'Total Deposits',
+                  value: totalDeposits,
+                  icon: <FaMoneyBillWave className="text-green-600 w-5 h-5 sm:w-6 sm:h-6" />,
+                  color: 'green'
+                },
+                {
+                  name: 'Total Earned',
+                  value: userData.earnedTotal,
+                  icon: <FaChartLine className="text-purple-600 w-5 h-5 sm:w-6 sm:h-6" />,
+                  color: 'purple'
+                },
+                {
+                  name: 'Pending Withdrawal',
+                  value: totalPendingWithdrawals,
+                  icon: <MdPendingActions className="text-yellow-600 w-5 h-5 sm:w-6 sm:h-6" />,
+                  color: 'yellow'
+                },
+                {
+                  name: 'Total Withdrawn',
+                  value: totalCompletedWithdrawals,
+                  icon: <FaMoneyBillWave className="text-red-600 w-5 h-5 sm:w-6 sm:h-6" />,
+                  color: 'red'
+                }
+              ].map((item, index) => (
+                <motion.div
+                  key={index}
+                  whileHover={{ y: -3 }}
+                  className={`bg-${item.color}-50 text-black  p-3 sm:p-4 rounded-lg border-l-4 border-${item.color}-500`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-black text-xs sm:text-sm">{item.name}</p>
+                      <p className={`text-lg text-black sm:text-xl font-bold text-${item.color}-700`}>
+                        {formatCurrency(item.value)}
+                      </p>
+                    </div>
+                    {item.icon}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
 
           {/* Financial Chart */}

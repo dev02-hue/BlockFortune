@@ -289,7 +289,7 @@ const SignUpForm = () => {
                     placeholder="John"
                     value={form.firstName}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-4 py-3 text-sm sm:text-base border ${
+                    className={`w-full text-black  pl-10 pr-4 py-3 text-sm sm:text-base border ${
                       errors.firstName ? "border-red-300 focus:ring-red-500" : "border-gray-300 focus:ring-emerald-500"
                     } rounded-lg focus:ring-2 focus:border-transparent transition placeholder-gray-400`}
                   />
@@ -315,7 +315,7 @@ const SignUpForm = () => {
                     placeholder="Doe"
                     value={form.lastName}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-4 py-3 text-sm sm:text-base border ${
+                    className={`w-full text-black  pl-10 pr-4 py-3 text-sm sm:text-base border ${
                       errors.lastName ? "border-red-300 focus:ring-red-500" : "border-gray-300 focus:ring-emerald-500"
                     } rounded-lg focus:ring-2 focus:border-transparent transition placeholder-gray-400`}
                   />
@@ -341,7 +341,7 @@ const SignUpForm = () => {
                     placeholder="johndoe123"
                     value={form.username}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-4 py-3 text-sm sm:text-base border ${
+                    className={`w-full text-black  pl-10 pr-4 py-3 text-sm sm:text-base border ${
                       errors.username ? "border-red-300 focus:ring-red-500" : "border-gray-300 focus:ring-emerald-500"
                     } rounded-lg focus:ring-2 focus:border-transparent transition placeholder-gray-400`}
                   />
@@ -367,7 +367,7 @@ const SignUpForm = () => {
                     placeholder="john@example.com"
                     value={form.email}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-4 py-3 text-sm sm:text-base border ${
+                    className={`w-full text-black  pl-10 pr-4 py-3 text-sm sm:text-base border ${
                       errors.email ? "border-red-300 focus:ring-red-500" : "border-gray-300 focus:ring-emerald-500"
                     } rounded-lg focus:ring-2 focus:border-transparent transition placeholder-gray-400`}
                   />
@@ -393,7 +393,7 @@ const SignUpForm = () => {
                     placeholder="Confirm your email"
                     value={form.confirmEmail}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-4 py-3 text-sm sm:text-base border ${
+                    className={`w-full text-black  pl-10 pr-4 py-3 text-sm sm:text-base border ${
                       errors.confirmEmail ? "border-red-300 focus:ring-red-500" : "border-gray-300 focus:ring-emerald-500"
                     } rounded-lg focus:ring-2 focus:border-transparent transition placeholder-gray-400`}
                   />
@@ -419,7 +419,7 @@ const SignUpForm = () => {
                     placeholder="••••••••"
                     value={form.password}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-10 py-3 text-sm sm:text-base border ${
+                    className={`w-full text-black  pl-10 pr-10 py-3 text-sm sm:text-base border ${
                       errors.password ? "border-red-300 focus:ring-red-500" : "border-gray-300 focus:ring-emerald-500"
                     } rounded-lg focus:ring-2 focus:border-transparent transition placeholder-gray-400`}
                   />
@@ -452,7 +452,7 @@ const SignUpForm = () => {
                     placeholder="••••••••"
                     value={form.confirmPassword}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-10 py-3 text-sm sm:text-base border ${
+                    className={`w-full text-black  pl-10 pr-10 py-3 text-sm sm:text-base border ${
                       errors.confirmPassword ? "border-red-300 focus:ring-red-500" : "border-gray-300 focus:ring-emerald-500"
                     } rounded-lg focus:ring-2 focus:border-transparent transition placeholder-gray-400`}
                   />
@@ -483,7 +483,7 @@ const SignUpForm = () => {
                     name="secretQuestion"
                     value={form.secretQuestion}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-4 py-3 text-sm sm:text-base border ${
+                    className={`w-full text-black  pl-10 pr-4 py-3 text-sm sm:text-base border ${
                       errors.secretQuestion ? "border-red-300 focus:ring-red-500" : "border-gray-300 focus:ring-emerald-500"
                     } rounded-lg focus:ring-2 focus:border-transparent transition appearance-none bg-white`}
                   >
@@ -514,7 +514,7 @@ const SignUpForm = () => {
                     placeholder="Your answer"
                     value={form.secretAnswer}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-4 py-3 text-sm sm:text-base border ${
+                    className={`w-full text-black  pl-10 pr-4 py-3 text-sm sm:text-base border ${
                       errors.secretAnswer ? "border-red-300 focus:ring-red-500" : "border-gray-300 focus:ring-emerald-500"
                     } rounded-lg focus:ring-2 focus:border-transparent transition placeholder-gray-400`}
                   />
@@ -536,7 +536,7 @@ const SignUpForm = () => {
                   placeholder="Enter referral code if any"
                   value={form.referredCode}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 focus:ring-emerald-500 rounded-lg focus:ring-2 focus:border-transparent transition placeholder-gray-400"
+                  className="w-full text-black  px-4 py-3 text-sm sm:text-base border border-gray-300 focus:ring-emerald-500 rounded-lg focus:ring-2 focus:border-transparent transition placeholder-gray-400"
                 />
               </div>
               
@@ -555,7 +555,7 @@ const SignUpForm = () => {
                       name="usdtTrc20Address"
                       value={form.usdtTrc20Address}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 focus:ring-emerald-500 rounded-lg focus:ring-2 focus:border-transparent transition placeholder-gray-400"
+                      className="w-full text-black  px-4 py-3 text-sm sm:text-base border border-gray-300 focus:ring-emerald-500 rounded-lg focus:ring-2 focus:border-transparent transition placeholder-gray-400"
                       placeholder="T... (TRON network)"
                     />
                   </div>
@@ -571,7 +571,7 @@ const SignUpForm = () => {
                       name="btcAddress"
                       value={form.btcAddress}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 focus:ring-emerald-500 rounded-lg focus:ring-2 focus:border-transparent transition placeholder-gray-400"
+                      className="w-full text-black  px-4 py-3 text-sm sm:text-base border border-gray-300 focus:ring-emerald-500 rounded-lg focus:ring-2 focus:border-transparent transition placeholder-gray-400"
                       placeholder="1... or 3... or bc1..."
                     />
                   </div>
@@ -587,7 +587,7 @@ const SignUpForm = () => {
                       name="usdtErc20Address"
                       value={form.usdtErc20Address}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 focus:ring-emerald-500 rounded-lg focus:ring-2 focus:border-transparent transition placeholder-gray-400"
+                      className="w-full text-black  px-4 py-3 text-sm sm:text-base border border-gray-300 focus:ring-emerald-500 rounded-lg focus:ring-2 focus:border-transparent transition placeholder-gray-400"
                       placeholder="0x... (Ethereum network)"
                     />
                   </div>
@@ -603,7 +603,7 @@ const SignUpForm = () => {
                       name="ethAddress"
                       value={form.ethAddress}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 focus:ring-emerald-500 rounded-lg focus:ring-2 focus:border-transparent transition placeholder-gray-400"
+                      className="w-full px-4 text-black  py-3 text-sm sm:text-base border border-gray-300 focus:ring-emerald-500 rounded-lg focus:ring-2 focus:border-transparent transition placeholder-gray-400"
                       placeholder="0x..."
                     />
                   </div>
@@ -619,7 +619,7 @@ const SignUpForm = () => {
                       name="bnbAddress"
                       value={form.bnbAddress}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 focus:ring-emerald-500 rounded-lg focus:ring-2 focus:border-transparent transition placeholder-gray-400"
+                      className="w-full px-4 py-3 text-black  text-sm sm:text-base border border-gray-300 focus:ring-emerald-500 rounded-lg focus:ring-2 focus:border-transparent transition placeholder-gray-400"
                       placeholder="0x... or bnb1..."
                     />
                   </div>

@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client'
 
-import { initiateBlockFortuneDeposit } from '@/lib/deposit'
+import { initiateBlockFortuneDeposit, getAllInvestmentPlans } from '@/lib/deposit'
 import { getUserData } from '@/lib/getUserData'
 import { CRYPTO_WALLETS } from '@/type/type'
 import React, { useState, useEffect, ReactNode } from 'react'
@@ -17,7 +17,7 @@ import {
   FiChevronDown,
   FiLoader
 } from 'react-icons/fi'
-import { FaBitcoin, FaEthereum, FaWallet } from 'react-icons/fa'
+import { FaBitcoin, FaEthereum, FaWallet, FaCoins, FaChartLine, FaPiggyBank, FaGem } from 'react-icons/fa'
 import { SiTether, SiSolana, SiTon } from 'react-icons/si'
 
 // Define types
@@ -25,7 +25,7 @@ type CryptoOption = {
   value: string
   label: string
   icon: ReactNode;
-      networks?: string[]
+  networks?: string[]
 }
 
 type DepositDetails = {
@@ -36,6 +36,12 @@ type DepositDetails = {
   reference: string
   narration: string
   transactionId: string
+  plan: {
+    id: number
+    name: string
+    duration: number
+    dailyROI: number
+  }
 }
 
 type CryptoType = keyof typeof CRYPTO_WALLETS
@@ -54,6 +60,21 @@ type CoinGeckoMarketData = {
   price_change_percentage_24h: number
 }
 
+type InvestmentPlan = {
+  id: number
+  name: string
+  daily_roi: number
+  min_amount: number
+  max_amount: number
+  duration_days: number
+  affiliate_commission: number
+  color?: string
+  description?: string
+  badge?: string
+}
+
+type DepositStep = 'select-plan' | 'enter-details' | 'payment'
+
 export default function DepositForm() {
   const [amount, setAmount] = useState('')
   const [cryptoType, setCryptoType] = useState('BTC')
@@ -66,6 +87,9 @@ export default function DepositForm() {
   const [paymentMade, setPaymentMade] = useState(false)
   const [marketData, setMarketData] = useState<CoinGeckoMarketData[]>([])
   const [isMarketDataLoading, setIsMarketDataLoading] = useState(true)
+  const [plans, setPlans] = useState<InvestmentPlan[]>([])
+  const [selectedPlan, setSelectedPlan] = useState<InvestmentPlan | null>(null)
+  const [currentStep, setCurrentStep] = useState<DepositStep>('select-plan')
 
   const cryptoOptions: CryptoOption[] = [
     { 
@@ -100,23 +124,32 @@ export default function DepositForm() {
     }
   ]
 
-  // Fetch user data on component mount
+  // Fetch user data and plans on component mount
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchData = async () => {
       try {
-        const response = await getUserData()
-        if (response.user) {
-          setUserData(response.user)
-        } else if (response.error) {
-          setError(response.error)
+        // Fetch user data
+        const userResponse = await getUserData()
+        if (userResponse.user) {
+          setUserData(userResponse.user)
+        } else if (userResponse.error) {
+          setError(userResponse.error)
+        }
+
+        // Fetch investment plans
+        const plansResponse = await getAllInvestmentPlans()
+        if (plansResponse.data) {
+          setPlans(plansResponse.data)
+        } else if (plansResponse.error) {
+          setError(plansResponse.error)
         }
       } catch (err) {
-        setError('Failed to fetch user data')
-        console.error('Error fetching user data:', err)
+        setError('Failed to fetch initial data')
+        console.error('Error fetching initial data:', err)
       }
     }
     
-    fetchUserData()
+    fetchData()
   }, [])
 
   // Fetch CoinGecko market data
@@ -161,20 +194,27 @@ export default function DepositForm() {
         return
       }
   
-      if (numericAmount <= 149.99) {
-        setError('Minimum deposit amount is $150')
+      if (!selectedPlan) {
+        setError('Please select an investment plan')
+        return
+      }
+  
+      if (numericAmount < selectedPlan.min_amount || numericAmount > selectedPlan.max_amount) {
+        setError(`Amount must be between $${selectedPlan.min_amount} and $${selectedPlan.max_amount} for this plan`)
         return
       }
   
       const result = await initiateBlockFortuneDeposit(
         numericAmount,
-        cryptoType as CryptoType
+        cryptoType as CryptoType,
+        selectedPlan.id
       )
   
       if ('error' in result && result.error) {
         setError(result.error)
       } else if ('success' in result && result.success && result.depositDetails) {
         setDepositDetails(result.depositDetails)
+        setCurrentStep('payment')
       }
     } catch (err) {
       console.error('Deposit error:', err)
@@ -195,7 +235,22 @@ export default function DepositForm() {
 
   const selectedCrypto = cryptoOptions.find(option => option.value === cryptoType)
 
-  if (depositDetails) {
+  const renderPlanIcon = (planName: string) => {
+    switch (planName) {
+      case '5-Day Plan':
+        return <FaCoins className="text-yellow-500 text-2xl" />
+      case '7-Day Plan':
+        return <FaChartLine className="text-purple-500 text-2xl" />
+      case '10-Day Plan':
+        return <FaPiggyBank className="text-indigo-500 text-2xl" />
+      case '13-Day Plan':
+        return <FaGem className="text-green-500 text-2xl" />
+      default:
+        return <FaCoins className="text-blue-500 text-2xl" />
+    }
+  }
+
+  if (depositDetails && currentStep === 'payment') {
     return (
       <AnimatePresence>
         <motion.div
@@ -219,6 +274,9 @@ export default function DepositForm() {
                     <p className="text-sm font-medium text-black mb-1">Amount to Send</p>
                     <p className="text-2xl text-black font-semibold">
                       ${depositDetails.amount} USD
+                    </p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {depositDetails.plan.name} ({depositDetails.plan.duration} days)
                     </p>
                   </div>
                   <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
@@ -331,7 +389,27 @@ export default function DepositForm() {
             </div>
 
             <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Current Market Prices</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Investment Plan Details</h3>
+              <div className="bg-white p-4 rounded-lg border border-gray-200 mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-medium text-gray-900">{depositDetails.plan.name}</h4>
+                  <span className={`px-2 py-1 text-xs rounded-full ${selectedPlan?.badge === 'VIP' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
+                    {depositDetails.plan.duration} days
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-600">Daily ROI</p>
+                  <p className="text-sm font-medium text-green-600">{depositDetails.plan.dailyROI}%</p>
+                </div>
+                <div className="flex items-center justify-between mt-2">
+                  <p className="text-sm text-gray-600">Total Return</p>
+                  <p className="text-sm font-medium text-green-600">
+                    {depositDetails.plan.dailyROI * depositDetails.plan.duration}%
+                  </p>
+                </div>
+              </div>
+
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 mt-6">Current Market Prices</h3>
               {isMarketDataLoading ? (
                 <div className="flex justify-center items-center h-40">
                   <FiLoader className="animate-spin h-8 w-8 text-blue-500" />
@@ -368,6 +446,119 @@ export default function DepositForm() {
     )
   }
 
+  if (currentStep === 'select-plan') {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="max-w-6xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden p-8"
+      >
+        <div className="text-center mb-10">
+          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4">
+            <FaWallet className="h-6 w-6 text-blue-600" />
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900">Choose Your Investment Plan</h2>
+          <p className="text-gray-600 mt-2">
+            Select a plan that matches your investment goals and budget
+          </p>
+        </div>
+
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg"
+          >
+            <div className="flex">
+              <div className="flex-shrink-0 pt-0.5">
+                <FiAlertTriangle className="h-5 w-5 text-red-500" />
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">Error Processing Request</h3>
+                <div className="mt-2 text-sm text-red-700">
+                  <p>{error}</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {plans.map((plan) => (
+            <motion.div
+              key={plan.id}
+              whileHover={{ y: -5 }}
+              className={`relative rounded-xl overflow-hidden border ${selectedPlan?.id === plan.id ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200'}`}
+            >
+              {plan.badge && (
+                <div className="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-bl-lg">
+                  {plan.badge}
+                </div>
+              )}
+              <div className={`${plan.color || 'bg-blue-500'} p-6 text-white`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xl font-bold">{plan.name}</h3>
+                    <p className="text-sm opacity-90">{plan.description}</p>
+                  </div>
+                  {renderPlanIcon(plan.name)}
+                </div>
+              </div>
+              <div className="bg-white p-6">
+                <div className="text-center mb-4">
+                  <span className="text-3xl font-bold text-gray-900">{plan.daily_roi}%</span>
+                  <span className="text-gray-600"> Daily ROI</span>
+                </div>
+                <div className="text-center mb-4">
+                  <span className="text-2xl font-bold text-gray-900">
+                    {plan.daily_roi * plan.duration_days}%
+                  </span>
+                  <span className="text-gray-600"> Total Return</span>
+                </div>
+                <div className="mb-4">
+                  <div className="flex justify-between py-2 border-b border-gray-100">
+                    <span className="text-gray-600">Duration</span>
+                    <span className="font-medium">{plan.duration_days} days</span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-gray-100">
+                    <span className="text-gray-600">Min Deposit</span>
+                    <span className="font-medium">${plan.min_amount}</span>
+                  </div>
+                  <div className="flex justify-between py-2">
+                    <span className="text-gray-600">Max Deposit</span>
+                    <span className="font-medium">${plan.max_amount}</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setSelectedPlan(plan)
+                    setCurrentStep('enter-details')
+                  }}
+                  className={`w-full py-3 rounded-lg font-medium transition-all ${
+                    selectedPlan?.id === plan.id
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                  }`}
+                >
+                  {selectedPlan?.id === plan.id ? 'Selected' : 'Choose Plan'}
+                </button>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="mt-8 border-t border-gray-200 pt-6">
+          <div className="flex items-center justify-center">
+            <FiCreditCard className="h-5 w-5 text-gray-400" />
+            <p className="ml-2 text-sm text-gray-500">
+              Secure cryptocurrency deposit powered by BlockFortune
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    )
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -385,6 +576,25 @@ export default function DepositForm() {
               Securely deposit funds using cryptocurrency to start investing with BlockFortune
             </p>
           </div>
+
+          {selectedPlan && (
+            <div className="mb-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium text-blue-800">{selectedPlan.name}</h3>
+                  <p className="text-sm text-blue-600">
+                    ${selectedPlan.min_amount} - ${selectedPlan.max_amount} • {selectedPlan.daily_roi}% Daily ROI
+                  </p>
+                </div>
+                <button
+                  onClick={() => setCurrentStep('select-plan')}
+                  className="text-sm text-blue-600 hover:text-blue-800"
+                >
+                  Change Plan
+                </button>
+              </div>
+            </div>
+          )}
 
           {error && (
             <motion.div
@@ -428,9 +638,11 @@ export default function DepositForm() {
                   <span className="text-gray-500 sm:text-sm">USD</span>
                 </div>
               </div>
-              <p className="mt-2 text-sm text-gray-500">
-                Minimum deposit: $150.00
-              </p>
+              {selectedPlan && (
+                <p className="mt-2 text-sm text-gray-500">
+                  Amount must be between ${selectedPlan.min_amount} and ${selectedPlan.max_amount}
+                </p>
+              )}
             </div>
 
             <div>
@@ -523,7 +735,7 @@ export default function DepositForm() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || !selectedPlan}
                 className={`w-full py-4 px-6 rounded-xl text-white font-medium shadow-md transition-all flex items-center justify-center ${
                   isLoading ? 'bg-gray-400' : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600'
                 }`}
@@ -578,7 +790,8 @@ export default function DepositForm() {
             </div>
           )}
           <div className="mt-6 text-center text-sm text-gray-500">
-            
+            <p>Prices update every minute</p>
+            <p className="mt-1">Powered by CoinGecko API</p>
           </div>
         </div>
       </div>

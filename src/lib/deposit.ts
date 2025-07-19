@@ -4,10 +4,10 @@ import { supabase } from '@/lib/supabaseClient'
 import { cookies } from 'next/headers'
 import { sendDepositEmailToAdmin, sendWithdrawalConfirmationToUser, sendWithdrawalEmailToAdmin } from './email'
 import { CRYPTO_NETWORKS, CRYPTO_WALLETS } from '@/type/type'
+import { revalidatePath } from 'next/cache'
 
 // Define the types for our crypto constants
 type CryptoType = 'BTC' | 'ETH' | 'USDT_TRC20' | 'TRX' | 'SOL'
-
 
 const WITHDRAWAL_FEES: Record<CryptoType, number> = {
   BTC: 0.0005,
@@ -17,103 +17,227 @@ const WITHDRAWAL_FEES: Record<CryptoType, number> = {
   SOL: 0.01
 }
 
+// Type for investment plan
+export type InvestmentPlan = {
+  id: number;
+  name: string;
+  daily_roi: number;
+  min_amount: number;
+  max_amount: number;
+  duration_days: number;
+  affiliate_commission: number;
+  color?: string;
+  description?: string;
+  badge?: string;
+}
+
+export async function updateInvestmentPlans(plans: InvestmentPlan[]) {
+  try {
+    const { data, error } = await supabase
+      .from('blockfortune_investment_plans')
+      .upsert(plans)
+      .select()
+
+    if (error) {
+      console.error('Error updating investment plans:', error)
+      throw error
+    }
+
+    revalidatePath('/admin/investment-plans')
+    return data as InvestmentPlan[]
+  } catch (err) {
+    console.error('Unexpected error in updateInvestmentPlans:', err)
+    throw err
+  }
+}
+
+// Delete multiple investment plans
+export async function deleteInvestmentPlans(ids: number[]) {
+  try {
+    const { error } = await supabase
+      .from('blockfortune_investment_plans')
+      .delete()
+      .in('id', ids)
+
+    if (error) {
+      console.error('Error deleting investment plans:', error)
+      throw error
+    }
+
+    revalidatePath('/admin/investment-plans')
+    return { success: true }
+  } catch (err) {
+    console.error('Unexpected error in deleteInvestmentPlans:', err)
+    throw err
+  }
+}
+
+ 
+// Get all investment plans
+export async function getAllInvestmentPlans() {
+  try {
+    const { data: plans, error } = await supabase
+      .from('blockfortune_investment_plans')
+      .select('*')
+      .order('min_amount', { ascending: true })
+
+    if (error) {
+      console.error('Error fetching investment plans:', error)
+      return { error: 'Failed to fetch investment plans', data: null }
+    }
+
+    return { data: plans as InvestmentPlan[], error: null }
+  } catch (err) {
+    console.error('Unexpected error in getAllInvestmentPlans:', err)
+    return { error: 'An unexpected error occurred', data: null }
+  }
+}
+
+// Get a single investment plan by ID
+export async function getInvestmentPlanById(planId: number) {
+  try {
+    const { data: plan, error } = await supabase
+      .from('blockfortune_investment_plans')
+      .select('*')
+      .eq('id', planId)
+      .single()
+
+    if (error) {
+      console.error('Error fetching investment plan:', error)
+      return { error: 'Investment plan not found', data: null }
+    }
+
+    return { data: plan as InvestmentPlan, error: null }
+  } catch (err) {
+    console.error('Unexpected error in getInvestmentPlanById:', err)
+    return { error: 'An unexpected error occurred', data: null }
+  }
+}
 
 export async function initiateBlockFortuneDeposit(
-    amount: number,
-    cryptoType: CryptoType
-  ) {
-    try {
-      console.log('[INIT] Starting deposit for:', cryptoType, 'Amount:', amount)
-  
-      // 1. Get user_id from cookies
-      const cookieStore = await cookies()
-      const userId = cookieStore.get('user_id')?.value
-      console.log('[STEP 1] userId:', userId)
-  
-      if (!userId) {
-        console.error('[ERROR] User not authenticated')
-        return { error: 'Not authenticated. Please log in again.' }
+  amount: number,
+  cryptoType: CryptoType,
+  planId: number
+) {
+  try {
+    console.log('[INIT] Starting deposit for:', cryptoType, 'Amount:', amount, 'Plan ID:', planId)
+
+    // 1. Get user_id from cookies
+    const cookieStore = await cookies()
+    const userId = cookieStore.get('user_id')?.value
+    console.log('[STEP 1] userId:', userId)
+
+    if (!userId) {
+      console.error('[ERROR] User not authenticated')
+      return { error: 'Not authenticated. Please log in again.' }
+    }
+
+    // 2. Fetch user profile to get email
+    const { data: profile, error: profileError } = await supabase
+      .from('blockfortuneprofile')
+      .select('email, balance')
+      .eq('id', userId)
+      .single()
+    console.log('[STEP 2] Profile:', profile)
+
+    if (profileError || !profile) {
+      console.error('[ERROR] Profile fetch failed:', profileError)
+      return { error: 'Failed to fetch user profile' }
+    }
+
+    // 3. Fetch investment plan details
+    const { data: plan, error: planError } = await supabase
+      .from('blockfortune_investment_plans')
+      .select('*')
+      .eq('id', planId)
+      .single()
+
+    if (planError || !plan) {
+      console.error('[ERROR] Plan fetch failed:', planError)
+      return { error: 'Invalid investment plan selected' }
+    }
+
+    // 4. Validate amount against plan limits
+    if (amount < plan.min_amount || amount > plan.max_amount) {
+      console.warn('[ERROR] Invalid deposit amount for plan:', amount, plan)
+      return { 
+        error: `Amount must be between $${plan.min_amount} and $${plan.max_amount} for this plan`
       }
-  
-      // 2. Fetch user profile to get email
-      const { data: profile, error: profileError } = await supabase
-        .from('blockfortuneprofile')
-        .select('email, balance')
-        .eq('id', userId)
-        .single()
-      console.log('[STEP 2] Profile:', profile)
-  
-      if (profileError || !profile) {
-        console.error('[ERROR] Profile fetch failed:', profileError)
-        return { error: 'Failed to fetch user profile' }
-      }
-  
-      // 3. Validate amount
-      if (amount <= 149) {
-        console.warn('[ERROR] Invalid deposit amount:', amount)
-        return { error: 'Deposit amount must be greater than 149' }
-      }
-  
-      // 4. Generate unique reference
-      const  narration = `BlockFortune-DEP-${Date.now()}-${Math.floor(Math.random() * 1000)}`
-      const  reference= `Deposit to BlockFortune ${cryptoType} Wallet`
-      console.log('[STEP 4] Generated Reference:', reference)
-      
-      // 5. Create deposit record
-      const { data: deposit, error: depositError } = await supabase
-        .from('blockfortunedeposits')
-        .insert([{
-          user_id: userId,
-          amount,
-          crypto_type: cryptoType,
-          status: 'pending',
-          reference,
-          user_email: profile.email,
-          wallet_address: CRYPTO_WALLETS[cryptoType],
-          narration
-        }])
-        .select()
-        .single()
-      console.log('[STEP 5] Deposit inserted:', deposit)
-  
-      if (depositError || !deposit) {
-        console.error('[ERROR] Deposit insertion failed:', depositError)
-        return { error: 'Failed to initiate deposit' }
-      }
-  
-      // 6. Notify admin
-      console.log('[STEP 6] Sending admin email notification...')
-      await sendDepositEmailToAdmin({
-        userEmail: profile.email,
+    }
+
+    // 5. Generate unique reference
+    const narration = `BlockFortune-DEP-${Date.now()}-${Math.floor(Math.random() * 1000)}`
+    const reference = `Deposit to ${plan.name} (${plan.duration_days} days)`
+    console.log('[STEP 5] Generated Reference:', reference)
+    
+    // 6. Create deposit record with plan information
+    const { data: deposit, error: depositError } = await supabase
+      .from('blockfortunedeposits')
+      .insert([{
+        user_id: userId,
+        amount,
+        crypto_type: cryptoType,
+        status: 'pending',
+        reference,
+        user_email: profile.email,
+        wallet_address: CRYPTO_WALLETS[cryptoType],
+        narration,
+        investment_plan_id: plan.id,
+        plan_name: plan.name,
+        plan_duration: plan.duration_days,
+        daily_roi: plan.daily_roi
+      }])
+      .select()
+      .single()
+    console.log('[STEP 6] Deposit inserted:', deposit)
+
+    if (depositError || !deposit) {
+      console.error('[ERROR] Deposit insertion failed:', depositError)
+      return { error: 'Failed to initiate deposit' }
+    }
+
+    // 7. Notify admin
+    console.log('[STEP 7] Sending admin email notification...')
+    await sendDepositEmailToAdmin({
+      userEmail: profile.email,
+      amount,
+      reference,
+      userId,
+      cryptoType,
+      transactionId: deposit.id,
+      planName: plan.name
+    })
+    console.log('[STEP 7] Email sent')
+
+    const result = {
+      success: true,
+      depositDetails: {
+        cryptoType,
+        cryptoNetwork: CRYPTO_NETWORKS[cryptoType],
+        walletAddress: CRYPTO_WALLETS[cryptoType],
         amount,
         reference,
-        userId,
-        cryptoType,
-        transactionId: deposit.id
-      })
-      console.log('[STEP 6] Email sent')
-  
-      const result = {
-        success: true,
-        depositDetails: {
-          cryptoType,
-          cryptoNetwork: CRYPTO_NETWORKS[cryptoType],
-          walletAddress: CRYPTO_WALLETS[cryptoType],
-          amount,
-          reference,
-          narration,
-          transactionId: deposit.id
+        narration,
+        transactionId: deposit.id,
+        plan: {
+          id: plan.id,
+          name: plan.name,
+          duration: plan.duration_days,
+          dailyROI: plan.daily_roi
         }
       }
-  
-      console.log('[SUCCESS] Deposit process complete:', result)
-      return result
-  
-    } catch (err) {
-      console.error('[FATAL ERROR] Unexpected error in initiateBlockFortuneDeposit:', err)
-      return { error: 'An unexpected error occurred. Please try again.' }
     }
+
+    console.log('[SUCCESS] Deposit process complete:', result)
+    return result
+
+  } catch (err) {
+    console.error('[FATAL ERROR] Unexpected error in initiateBlockFortuneDeposit:', err)
+    return { error: 'An unexpected error occurred. Please try again.' }
   }
+}
+
+// ... [keep all your existing functions below, they don't need modification]
 
 
   export async function getTotalCompletedDeposits() {
