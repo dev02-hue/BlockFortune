@@ -2,6 +2,7 @@
 import Image from 'next/image'
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import Link from 'next/link';
 
 const LetsDoGreat = () => {
   const [count, setCount] = useState(0);
@@ -85,9 +86,14 @@ const LetsDoGreat = () => {
         <p className="text-sm text-gray-700">Worldwide clients</p>
 
         {/* Button */}
-        <button className="bg-black text-white px-6 py-2 rounded-full hover:scale-105 transition">
-          Get Started
-        </button>
+        <Link href="/signup" passHref>
+  <motion.a
+    whileHover={{ scale: 1.05 }}
+    className="bg-black text-white px-6 py-2 rounded-full transition block text-center"
+  >
+    Get Started
+  </motion.a>
+</Link>
       </motion.div>
     </section>
   );

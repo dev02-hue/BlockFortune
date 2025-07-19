@@ -4,6 +4,7 @@ import { motion, Variants } from "framer-motion";
 import {  FaChartLine, FaCoins, FaPiggyBank, FaGem } from "react-icons/fa";
 import { useEffect, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 const plans = [
   {
@@ -263,25 +264,27 @@ export default function PricingSection() {
                 </div>
 
                 <div className="mt-auto w-full">
-                  <motion.button
-                    whileHover={{ 
-                      backgroundColor: "#047857",
-                      color: "white",
-                      scale: 1.05 
-                    }}
-                    whileFocus={{ 
-                      backgroundColor: "#047857",
-                      color: "white",
-                      scale: 1.05,
-                      boxShadow: "0 0 0 3px rgba(5, 150, 105, 0.5)"
-                    }}
-                    whileTap={{ scale: 0.95 }}
-                    className="mt-8 w-full bg-teal-600 text-white hover:bg-teal-700 px-6 py-3 rounded-lg font-semibold text-lg transition-colors flex items-center justify-center gap-2"
-                  >
-                    {plan.icon}
-                    Invest Now
-                  </motion.button>
-                </div>
+  <Link href="/signup" passHref>
+    <motion.a
+      whileHover={{ 
+        backgroundColor: "#047857",
+        color: "white",
+        scale: 1.05 
+      }}
+      whileFocus={{ 
+        backgroundColor: "#047857",
+        color: "white",
+        scale: 1.05,
+        boxShadow: "0 0 0 3px rgba(5, 150, 105, 0.5)"
+      }}
+      whileTap={{ scale: 0.95 }}
+      className="mt-8 w-full bg-teal-600 text-white hover:bg-teal-700 px-6 py-3 rounded-lg font-semibold text-lg transition-colors flex items-center justify-center gap-2  text-center"
+    >
+      {plan.icon}
+      Invest Now
+    </motion.a>
+  </Link>
+</div>
               </div>
             </motion.div>
           ))}

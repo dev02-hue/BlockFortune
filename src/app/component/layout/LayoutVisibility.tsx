@@ -6,7 +6,7 @@ interface LayoutVisibilityProps {
   children: React.ReactNode;
 }
 
-const HIDDEN_PATHS = ['/admin', '/user'];
+const HIDDEN_PATHS = ['/savio', '/user'];
 
 export default function LayoutVisibility({ children }: LayoutVisibilityProps) {
   const pathname = usePathname();
