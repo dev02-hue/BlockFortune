@@ -253,22 +253,22 @@ export default function UserProfile() {
             </h2>
             <div className="grid grid-cols-1 gap-3 sm:gap-4">
               <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
-                <p className="text-gray-500 text-xs sm:text-sm">Full Name</p>
-                <p className="font-medium text-sm sm:text-base">
+                <p className="text-black text-xs sm:text-sm">Full Name</p>
+                <p className="font-medium text-black text-sm sm:text-base">
                   {userData.firstName} {userData.lastName}
                 </p>
               </div>
               <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
-                <p className="text-gray-500 text-xs sm:text-sm">Email</p>
+                <p className="text-black text-xs sm:text-sm">Email</p>
                 <p className="font-medium text-sm sm:text-base flex items-center">
                   <FaEnvelope className="mr-2 text-blue-600 w-3 h-3 sm:w-4 sm:h-4" />
-                  <span className="truncate">{userData.email}</span>
+                  <span className="truncate text-black">{userData.email}</span>
                 </p>
               </div>
               {verificationStatus?.verifiedAt && (
                 <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
-                  <p className="text-gray-500 text-xs sm:text-sm">Verified Since</p>
-                  <p className="font-medium text-sm sm:text-base">
+                  <p className="text-black text-xs sm:text-sm">Verified Since</p>
+                  <p className="font-medium text-sm sm:text-base text-black">
                     {new Date(verificationStatus.verifiedAt).toLocaleDateString()}
                   </p>
                 </div>
@@ -318,12 +318,12 @@ export default function UserProfile() {
                 <motion.div
                   key={index}
                   whileHover={{ y: -3 }}
-                  className={`bg-${item.color}-50 p-3 sm:p-4 rounded-lg border-l-4 border-${item.color}-500`}
+                  className={`bg-${item.color}-50 text-black  p-3 sm:p-4 rounded-lg border-l-4 border-${item.color}-500`}
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-gray-500 text-xs sm:text-sm">{item.name}</p>
-                      <p className={`text-lg sm:text-xl font-bold text-${item.color}-700`}>
+                      <p className="text-black text-xs sm:text-sm">{item.name}</p>
+                      <p className={`text-lg text-black sm:text-xl font-bold text-${item.color}-700`}>
                         {formatCurrency(item.value)}
                       </p>
                     </div>
