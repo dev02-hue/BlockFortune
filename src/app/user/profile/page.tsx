@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { FaUser, FaWallet, FaMoneyBillWave, FaChartLine, FaEnvelope, FaCheckCircle, FaTimesCircle, FaClock } from 'react-icons/fa'
+import { FaUser, FaWallet, FaMoneyBillWave, FaChartLine, FaEnvelope, FaCheckCircle, FaTimesCircle, FaClock, FaCopy } from 'react-icons/fa'
 import { GiMoneyStack } from 'react-icons/gi'
 import { MdPendingActions } from 'react-icons/md'
 import { useEffect, useState } from 'react'
@@ -22,6 +22,8 @@ import {
 import { getTotalCompletedDeposits, getTotalCompletedWithdrawals, getTotalPendingWithdrawals } from '@/lib/deposit'
 import Link from 'next/link'
 import { getVerificationStatus } from '@/lib/profile'
+import { toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 interface UserData {
   id: string
@@ -29,14 +31,15 @@ interface UserData {
   lastName: string
   username: string
   email: string
+  referral_code: string
   pendingWithdrawal: number
   activeDeposit: number
   withdrawalTotal: number
   earnedTotal: number
   balance: number
   totalDeposits?: number 
-  totalPendingWithdrawals?:number
-  totalCompletedWithdrawals?:number
+  totalPendingWithdrawals?: number
+  totalCompletedWithdrawals?: number
 }
 
 interface VerificationStatus {
@@ -57,6 +60,7 @@ export default function UserProfile() {
   const [totalPendingWithdrawals, setTotalPendingWithdrawals] = useState<number>(0)
   const [totalCompletedWithdrawals, setTotalCompletedWithdrawals] = useState<number>(0)
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus | null>(null)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -131,6 +135,38 @@ export default function UserProfile() {
       { name: 'Withdrawn Total', value: totalCompletedWithdrawals },
       { name: 'Total Deposits', value: totalDeposits }, 
     ].filter(item => item.value > 0)
+  }
+
+  const copyReferralCode = () => {
+    if (!userData?.referral_code) return
+    
+    navigator.clipboard.writeText(userData.referral_code)
+      .then(() => {
+        setCopied(true)
+        toast.success('Referral code copied to clipboard!', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        })
+        
+        setTimeout(() => setCopied(false), 2000)
+      })
+      .catch(err => {
+        console.error('Failed to copy referral code:', err)
+        toast.error('Failed to copy referral code', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        })
+      })
   }
 
   const renderVerificationBadge = () => {
@@ -265,6 +301,25 @@ export default function UserProfile() {
                   <span className="truncate text-black">{userData.email}</span>
                 </p>
               </div>
+              <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
+                <p className="text-black text-xs sm:text-sm">Referral Code</p>
+                <div className="flex items-center justify-between mt-1">
+                  <p className="font-medium text-black text-sm sm:text-base">
+                    {userData.referral_code}
+                  </p>
+                  <button
+                    onClick={copyReferralCode}
+                    className="flex items-center justify-center p-2 rounded-md bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors"
+                    aria-label="Copy referral code"
+                  >
+                    <FaCopy className="w-4 h-4" />
+                    <span className="ml-1 text-xs">{copied ? 'Copied!' : 'Copy'}</span>
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Share this code with friends to earn referral bonuses
+                </p>
+              </div>
               {verificationStatus?.verifiedAt && (
                 <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
                   <p className="text-black text-xs sm:text-sm">Verified Since</p>
@@ -318,7 +373,7 @@ export default function UserProfile() {
                 <motion.div
                   key={index}
                   whileHover={{ y: -3 }}
-                  className={`bg-${item.color}-50 text-black  p-3 sm:p-4 rounded-lg border-l-4 border-${item.color}-500`}
+                  className={`bg-${item.color}-50 text-black p-3 sm:p-4 rounded-lg border-l-4 border-${item.color}-500`}
                 >
                   <div className="flex items-center justify-between">
                     <div>

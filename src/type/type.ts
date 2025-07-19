@@ -22,3 +22,46 @@ export const CRYPTO_NETWORKS: CryptoNetworks = {
   TRX: 'Tron (TRX)',
   SOL: 'Solana'
 }
+
+export type UserProfile = {
+  id: string
+  firstName: string
+  lastName: string
+  username: string
+  email: string
+  referral_code: string
+  pendingWithdrawal: number
+  activeDeposit: number
+  withdrawalTotal: number
+  earnedTotal: number
+  balance: number
+  usdtTrc20Address: string
+  btcAddress: string
+  usdtErc20Address: string
+  ethAddress: string
+  bnbAddress: string
+  createdAt?: string
+}
+
+export type EditableProfileFields = {
+  firstName?: string
+  lastName?: string
+  username?: string
+  email?: string
+  pendingWithdrawal?: number
+  activeDeposit?: number
+  withdrawalTotal?: number
+  earnedTotal?: number
+  balance?: number
+  usdtTrc20Address?: string
+  btcAddress?: string
+  usdtErc20Address?: string
+  ethAddress?: string
+  bnbAddress?: string
+}
+
+export type ApiResponse<T> = {
+  data?: T
+  error?: string
+  count?: number
+}
