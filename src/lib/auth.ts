@@ -182,15 +182,23 @@ export async function signUp({
       const mailOptions = {
         from: process.env.EMAIL_FROM,
         to: email,
-        subject: 'Welcome to BlockFortune - Confirm Your Email',
+        subject: '👋 Welcome to BlockFortune – Secure Your Account',
         html: `
-          <p>Hello ${firstName},</p>
-          <p>Thank you for registering with BlockFortune!</p>
-          <p>Your username: <strong>${username}</strong></p>
-          <p>Please keep your login details secure.</p>
-          <p>If you didn't create this account, please contact support immediately.</p>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
+            <h2 style="color: #0a0a0a;">Welcome to <span style="color: #4f46e5;">BlockFortune</span>, ${firstName}!</h2>
+            <p>Thank you for joining <strong>BlockFortune</strong>, your trusted platform for secure and rewarding crypto investments.</p>
+            <p><strong>Username:</strong> ${username}</p>
+            <p>🔒 <strong>Tip:</strong> Keep your login details private and secure.</p>
+            <p>If you didn’t sign up for this account, please contact our support team immediately.</p>
+            <br />
+            <p>We’re glad to have you with us!</p>
+            <p style="margin-top: 20px;">Warm regards,<br/>The BlockFortune Team</p>
+            <hr style="margin-top: 30px; border: none; border-top: 1px solid #eaeaea;" />
+            <small style="color: #555;">This is an automated message. Do not reply directly to this email.</small>
+          </div>
         `,
-      }
+      };
+      
 
       await transporter.sendMail(mailOptions)
     } catch (emailError) {
@@ -492,14 +500,28 @@ export async function sendPasswordResetOTP({ username }: SendOTPInput) {
       const mailOptions = {
         from: process.env.EMAIL_FROM,
         to: user.email,
-        subject: 'Your BlockFortune Password Reset OTP',
+        subject: '🔐 Your BlockFortune Password Reset OTP',
         html: `
-          <p>Hello,</p>
-          <p>Your OTP for password reset is: <strong>${otp}</strong></p>
-          <p>This code will expire in 15 minutes.</p>
-          <p>If you didn't request this, please ignore this email.</p>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
+            <h2 style="color: #4f46e5;">BlockFortune Password Reset</h2>
+            <p>Hello,</p>
+            <p>You requested a password reset. Use the OTP below to proceed:</p>
+            
+            <p style="font-size: 20px; font-weight: bold; color: #0a0a0a;">🔢 OTP: <strong>${otp}</strong></p>
+      
+            <p>This code is valid for <strong>15 minutes</strong>.</p>
+            <p>If you didn’t request a password reset, you can safely ignore this email.</p>
+      
+            <br />
+            <p>Need help? Contact our support team anytime.</p>
+            <p style="margin-top: 20px;">– The BlockFortune Team</p>
+      
+            <hr style="margin-top: 30px; border: none; border-top: 1px solid #eaeaea;" />
+            <small style="color: #888;">This is an automated message. Do not reply directly.</small>
+          </div>
         `,
-      }
+      };
+      
 
       await transporter.sendMail(mailOptions)
     } catch (emailError) {

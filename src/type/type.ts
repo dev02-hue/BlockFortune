@@ -4,16 +4,15 @@ type CryptoNetworks = Record<CryptoType, string>
 type CryptoWallets = Record<CryptoType, string>
 
 export const CRYPTO_WALLETS: CryptoWallets = {
-    BTC: 'bc1qblockfortunewallet12345xyz',
-    ETH: '0xBlockFortuneWalletAddressETH',
-    USDT_TRC20: 'TBlockFortuneTRC20WalletAddress',
-    TRX: 'TBlockFortuneTRXWalletAddress',
-    SOL: 'BlockFortuneSOLWalletAddress123'
+    BTC: 'bc1qj4mtv03yma5nc6f93ukxcp8wcgq6a30ehc0996',
+    ETH: '0x4441c131480e0b57D125a6D20B68e6e559018Eb1',
+    USDT_TRC20: 'TYnqsXXnZoAZ1hNfKA6m4McKrGhzT4WZFR',
+    TRX: 'TUzEmBCw6zyYme44iVizwSoJg2vCMUnFh4',
+    SOL: 'GBhsDrD73ZrfsgRokHxMndJmxcV5wFyp2iSL3cr4eyhz'
   }
 
 
-// Supported cryptocurrencies with their wallet addresses
-
+ 
 
 export const CRYPTO_NETWORKS: CryptoNetworks = {
   BTC: 'Bitcoin Network',
