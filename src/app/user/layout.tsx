@@ -270,7 +270,7 @@ export default function DashboardLayout({
         <main className={`flex-1 overflow-y-auto bg-gradient-to-br from-black to-gray-900 transition-all duration-300 ${
           isSidebarOpen ? ' ' : ''
         }`}>
-          <div className="p-6 max-w-7xl mx-auto">
+          <div className=" ">
             {children}
           </div>
         </main>
