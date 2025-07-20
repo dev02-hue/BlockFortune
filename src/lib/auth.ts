@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { v4 as uuidv4 } from 'uuid'
 import nodemailer from 'nodemailer'
+import { recordReferral } from './referral'
 
 type SignUpInput = {
   firstName: string
@@ -127,7 +128,6 @@ export async function signUp({
 
     // 4. Process referral if provided
     let referredByUserId: string | null = null
-    let referralBonusApplied = false
     
     if (referredCode) {
       // Validate referral code format before querying
@@ -147,6 +147,12 @@ export async function signUp({
           if (referredByUserId === userId) {
             await supabase.auth.admin.deleteUser(userId)
             return { error: 'Cannot refer yourself' }
+          }
+
+          const { success, error } = await recordReferral(userId, referredCode)
+          if (!success) {
+            console.error('Failed to record referral:', error)
+            // You might want to handle this case differently
           }
 
           // Send notification to referrer
@@ -177,7 +183,7 @@ export async function signUp({
             };
             
             await transporter.sendMail(mailOptions)
-            referralBonusApplied = true
+           
           } catch (emailError) {
             console.error('Failed to send referral notification:', emailError)
           }
@@ -202,13 +208,8 @@ export async function signUp({
       bnb_address: bnbAddress,
       referral_code: referralCode,
       referred_by: referredByUserId,
-      referral_bonus_applied: referralBonusApplied,
       created_at: now,
-      updated_at: now,
-      last_login: now,
-      account_status: 'active',
       verification_status: 'pending',
-      kyc_status: 'not_submitted'
     }])
 
     if (profileError) {
