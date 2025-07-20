@@ -6,6 +6,7 @@ import { FiMenu, FiX, FiUser, FiSettings, FiHome, FiPieChart, FiDollarSign, FiCr
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import SignOutButton from '../component/user/SignOutButton';
+import { FaUserFriends } from 'react-icons/fa';
 
 export default function DashboardLayout({
   children,
@@ -67,7 +68,7 @@ export default function DashboardLayout({
     { 
       name: 'Invite', 
       path: '/user/invite', 
-      icon: <FiUser className="text-green-400" />,
+      icon: <FaUserFriends className="text-green-400" />,
       section: null
     },
     { 
