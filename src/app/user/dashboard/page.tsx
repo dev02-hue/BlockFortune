@@ -267,7 +267,7 @@ export default function ProfessionalDashboard() {
   const forexChartData = prepareForexChartData()
 
   return (
-    <div className="min-h-screen bg-gray-50 p-2 sm:p-4 md:p-6">
+    <div className="min-h-screen w-full bg-gray-50 p-2 sm:p-4 md:p-6">
       {/* Header */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}

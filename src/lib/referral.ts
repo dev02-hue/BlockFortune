@@ -272,7 +272,7 @@ export async function withdrawReferralEarnings(): Promise<{ success: boolean, er
       return { success: false, error: 'Failed to credit earnings' }
     }
 
-    revalidatePath('/user/referrals')
+    revalidatePath('/user/invite')
     return { success: true }
   } catch (err) {
     console.error('Unexpected error in withdrawReferralEarnings:', err)
