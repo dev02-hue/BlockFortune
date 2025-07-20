@@ -324,14 +324,59 @@ export async function initiateBlockFortuneDeposit(
         return { error: 'Failed to complete deposit' }
       }
   
-      // 4. Fetch user details for email
+      // 4. Process referral earnings if applicable
+      try {
+        // Check if user was referred
+        const { data: profile, error: profileError } = await supabase
+          .from('blockfortuneprofile')
+          .select('referred_by, referral_code')
+          .eq('id', deposit.user_id)
+          .single()
+  
+        if (!profileError && profile?.referred_by) {
+          // Get the investment plan to determine referral percentage
+          const { data: plan, error: planError } = await supabase
+            .from('blockfortune_investment_plans')
+            .select('affiliate_commission')
+            .eq('id', deposit.investment_plan_id)
+            .single()
+  
+          if (!planError && plan) {
+            const referralEarnings = deposit.amount * (plan.affiliate_commission / 100)
+            
+            // Create referral record
+            await supabase
+              .from('blockfortunereferrals')
+              .insert({
+                referrer_id: profile.referred_by,
+                referee_id: deposit.user_id,
+                earned_amount: referralEarnings,
+                status: 'pending',
+                deposit_id: deposit.id
+              })
+  
+            // Update referrer's pending earnings
+            await supabase.rpc('increment_referral_earnings', {
+              user_id: profile.referred_by,
+              amount: referralEarnings
+            })
+  
+            console.log(`Processed referral earnings of $${referralEarnings} for referrer ${profile.referred_by}`)
+          }
+        }
+      } catch (referralError) {
+        console.error('Error processing referral earnings:', referralError)
+        // Don't fail deposit approval if referral processing fails
+      }
+  
+      // 5. Fetch user details for email
       const { data: user, error: userError } = await supabase
-        .from('users')
+        .from('blockfortuneprofile')
         .select('email, first_name, username')
         .eq('id', deposit.user_id)
         .single();
   
-      // 5. Send approval email if user exists
+      // 6. Send approval email if user exists
       if (!userError && user?.email) {
         try {
           const transporter = nodemailer.createTransport({
@@ -384,6 +429,7 @@ export async function initiateBlockFortuneDeposit(
         userId: deposit.user_id,
         amount: deposit.amount
       }
+      
     } catch (err) {
       console.error('Unexpected error in approveBlockFortuneDeposit:', err)
       return { error: 'An unexpected error occurred. Please try again.' }
