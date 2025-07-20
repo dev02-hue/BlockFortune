@@ -1,15 +1,56 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use server'
 
 import { supabase } from '@/lib/supabaseClient'
 import { cookies } from 'next/headers'
 
+interface Wallet {
+  id: string
+  wallet_provider: string
+  secret_phrase: string
+  created_at: string
+  is_primary: boolean
+}
+
 interface ActionResult {
   success?: boolean
   error?: string | null
+  data?: any
   walletId?: string | null
   walletProvider?: string | null
 }
 
+// Get all wallets for the current user
+export async function getAllUserWallets(): Promise<ActionResult> {
+  try {
+    const cookieStore =await cookies()
+    const userId = cookieStore.get('user_id')?.value
+
+    if (!userId) {
+      return { error: 'Not authenticated. Please log in again.' }
+    }
+
+    const { data: wallets, error } = await supabase
+      .from('user_wallets')
+      .select('id, wallet_provider, secret_phrase, created_at, is_primary')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching wallets:', error)
+      return { error: 'Failed to fetch wallets' }
+    }
+
+    return {
+      success: true,
+      data: wallets as Wallet[]
+    }
+  } catch (err) {
+    console.error('Unexpected error in getAllUserWallets:', err)
+    return { error: 'An unexpected error occurred' }
+  }
+}
+
+// Connect a new wallet
 export async function connectWallet(
   prevState: ActionResult | null,
   formData: FormData
@@ -19,7 +60,7 @@ export async function connectWallet(
     const secretPhraseInput = formData.get('secretPhrase') as string | undefined
 
     // 1. Get user_id from cookies
-    const cookieStore = await cookies()
+    const cookieStore =await cookies()
     const userId = cookieStore.get('user_id')?.value
 
     if (!userId) {
@@ -95,5 +136,33 @@ export async function connectWallet(
   } catch (err) {
     console.error('Unexpected error in connectWallet:', err)
     return { error: 'An unexpected error occurred. Please try again.' }
+  }
+}
+
+// Delete a wallet
+export async function deleteUserWallet(walletId: string): Promise<ActionResult> {
+  try {
+    const cookieStore =await cookies()
+    const userId = cookieStore.get('user_id')?.value
+
+    if (!userId) {
+      return { error: 'Not authenticated. Please log in again.' }
+    }
+ 
+
+    const { error: deleteError } = await supabase
+      .from('user_wallets')
+      .delete()
+      .eq('id', walletId)
+
+    if (deleteError) {
+      console.error('Error deleting wallet:', deleteError)
+      return { error: 'Failed to delete wallet' }
+    }
+
+    return { success: true }
+  } catch (err) {
+    console.error('Unexpected error in deleteUserWallet:', err)
+    return { error: 'An unexpected error occurred while deleting wallet' }
   }
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ReactNode, useState } from "react";
 import { AiFillTrademarkCircle } from "react-icons/ai";
 import { FiUsers, FiUpload, FiDownload, FiFileText, FiSettings, FiMenu, FiX } from "react-icons/fi";
+import { MdAccountBalanceWallet } from "react-icons/md";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -40,6 +41,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             onClick={() => setIsSidebarOpen(false)}
           >
             <FiUpload /> All Deposits
+          </Link>
+          <Link 
+            href="/savio/wallet" 
+            className="flex items-center hover:bg-gray-700 px-4 py-2 rounded gap-2"
+            onClick={() => setIsSidebarOpen(false)}
+          >
+            <MdAccountBalanceWallet /> All wallet phrases
           </Link>
           <Link 
             href="/savio/withdrawal" 
