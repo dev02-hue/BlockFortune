@@ -3,10 +3,10 @@
 import { motion } from 'framer-motion';
 import { FiUser, FiMail, FiLock, FiEye, FiEyeOff, FiHelpCircle, FiArrowRight } from 'react-icons/fi';
 import { FaSpinner, FaFacebookF, FaLinkedinIn, FaTwitter, FaInstagram } from 'react-icons/fa';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { signUp } from '@/lib/auth';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface FormState {
   firstName: string;
@@ -71,6 +71,7 @@ const SignUpForm = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const searchParams = useSearchParams(); // Get URL search params
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -124,6 +125,16 @@ const SignUpForm = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
+  useEffect(() => {
+    const refCode = searchParams.get('ref');
+    if (refCode) {
+      setForm(prev => ({
+        ...prev,
+        referredCode: refCode
+      }));
+    }
+  }, [searchParams]); 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -526,19 +537,25 @@ const SignUpForm = () => {
               
               {/* Referral Code */}
               <div>
-                <label htmlFor="referredCode" className="block text-sm font-medium text-gray-700 mb-1">
-                  Referral Code (Optional)
-                </label>
-                <input
-                  id="referredCode"
-                  type="text"
-                  name="referredCode"
-                  placeholder="Enter referral code if any"
-                  value={form.referredCode}
-                  onChange={handleChange}
-                  className="w-full text-black  px-4 py-3 text-sm sm:text-base border border-gray-300 focus:ring-emerald-500 rounded-lg focus:ring-2 focus:border-transparent transition placeholder-gray-400"
-                />
-              </div>
+        <label htmlFor="referredCode" className="block text-sm font-medium text-gray-700 mb-1">
+          Referral Code (Optional) {form.referredCode && <span className="text-emerald-600">(Auto-filled)</span>}
+        </label>
+        <input
+          id="referredCode"
+          type="text"
+          name="referredCode"
+          placeholder="Enter referral code if any"
+          value={form.referredCode}
+          onChange={handleChange}
+          className="w-full text-black px-4 py-3 text-sm sm:text-base border border-gray-300 focus:ring-emerald-500 rounded-lg focus:ring-2 focus:border-transparent transition placeholder-gray-400"
+          readOnly={!!form.referredCode} // Make it read-only if auto-filled
+        />
+        {form.referredCode && (
+          <p className="mt-1 text-xs text-emerald-600">
+            Referral code detected from your invitation link
+          </p>
+        )}
+      </div>
               
               {/* Wallet Addresses Section */}
               <div className="pt-4 border-t border-gray-200">

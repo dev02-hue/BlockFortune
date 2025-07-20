@@ -122,28 +122,70 @@ export async function signUp({
     }
 
     const userId = authData.user.id
-    const referralCode = uuidv4().split('-')[0] + userId.slice(0, 4)
+    // Generate a more secure and readable referral code
+    const referralCode = `BF-${uuidv4().split('-')[0].toUpperCase()}${userId.slice(0, 4)}`
 
     // 4. Process referral if provided
     let referredByUserId: string | null = null
+    let referralBonusApplied = false
+    
     if (referredCode) {
-      const { data: referrerProfile, error: referralError } = await supabase
-        .from('blockfortuneprofile')
-        .select('id')
-        .eq('referral_code', referredCode)
-        .single()
+      // Validate referral code format before querying
+      if (referredCode.length < 8 || referredCode.length > 20) {
+        console.warn('Invalid referral code format:', referredCode)
+      } else {
+        const { data: referrerProfile, error: referralError } = await supabase
+          .from('blockfortuneprofile')
+          .select('id, first_name, email')
+          .eq('referral_code', referredCode)
+          .single()
 
-      if (!referralError && referrerProfile?.id) {
-        referredByUserId = referrerProfile.id
+        if (!referralError && referrerProfile?.id) {
+          referredByUserId = referrerProfile.id
 
-        if (referredByUserId === userId) {
-          await supabase.auth.admin.deleteUser(userId)
-          return { error: 'Cannot refer yourself' }
+          // Prevent self-referral
+          if (referredByUserId === userId) {
+            await supabase.auth.admin.deleteUser(userId)
+            return { error: 'Cannot refer yourself' }
+          }
+
+          // Send notification to referrer
+          try {
+            const transporter = nodemailer.createTransport({
+              service: 'gmail',
+              auth: {
+                user: process.env.EMAIL_USERNAME,
+                pass: process.env.EMAIL_PASSWORD,
+              },
+            })
+
+            const mailOptions = {
+              from: process.env.EMAIL_FROM,
+              to: referrerProfile.email,
+              subject: '🎉 You Have a New Referral on BlockFortune!',
+              html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
+                  <h2 style="color: #0a0a0a;">Congratulations, ${referrerProfile.first_name}!</h2>
+                  <p>You have a new referral on BlockFortune:</p>
+                  <p><strong>New Member:</strong> ${firstName} ${lastName} (${email})</p>
+                  <p>You'll earn 10% of all their deposits once they start investing.</p>
+                  <br />
+                  <p>Keep sharing your referral link to earn more rewards!</p>
+                  <p style="margin-top: 20px;">Happy earning,<br/>The BlockFortune Team</p>
+                </div>
+              `,
+            };
+            
+            await transporter.sendMail(mailOptions)
+            referralBonusApplied = true
+          } catch (emailError) {
+            console.error('Failed to send referral notification:', emailError)
+          }
         }
       }
     }
 
-    // 5. Create user profile
+    // 5. Create user profile with enhanced data
     const now = new Date().toISOString()
     const { error: profileError } = await supabase.from('blockfortuneprofile').insert([{
       id: userId,
@@ -160,8 +202,13 @@ export async function signUp({
       bnb_address: bnbAddress,
       referral_code: referralCode,
       referred_by: referredByUserId,
+      referral_bonus_applied: referralBonusApplied,
       created_at: now,
       updated_at: now,
+      last_login: now,
+      account_status: 'active',
+      verification_status: 'pending',
+      kyc_status: 'not_submitted'
     }])
 
     if (profileError) {
@@ -169,7 +216,7 @@ export async function signUp({
       return { error: 'Failed to create profile: ' + profileError.message }
     }
 
-    // 6. Send email confirmation
+    // 6. Send welcome email with referral information
     try {
       const transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -179,6 +226,10 @@ export async function signUp({
         },
       })
 
+      const referralInfo = referredByUserId 
+        ? `<p>You joined using a referral link - you're helping someone earn rewards!</p>`
+        : `<p>Share your referral link to earn 10% of your friends' deposits: <strong>${process.env.NEXT_PUBLIC_SITE_URL}/signup?ref=${referralCode}</strong></p>`
+
       const mailOptions = {
         from: process.env.EMAIL_FROM,
         to: email,
@@ -187,11 +238,15 @@ export async function signUp({
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
             <h2 style="color: #0a0a0a;">Welcome to <span style="color: #4f46e5;">BlockFortune</span>, ${firstName}!</h2>
             <p>Thank you for joining <strong>BlockFortune</strong>, your trusted platform for secure and rewarding crypto investments.</p>
-            <p><strong>Username:</strong> ${username}</p>
-            <p>🔒 <strong>Tip:</strong> Keep your login details private and secure.</p>
-            <p>If you didn’t sign up for this account, please contact our support team immediately.</p>
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0;">
+              <p><strong>Username:</strong> ${username}</p>
+              <p><strong>Your Referral Code:</strong> ${referralCode}</p>
+              ${referralInfo}
+            </div>
+            <p>🔒 <strong>Security Tip:</strong> Never share your login details with anyone.</p>
+            <p>If you didn't sign up for this account, please contact our support team immediately.</p>
             <br />
-            <p>We’re glad to have you with us!</p>
+            <p>We're excited to have you on board!</p>
             <p style="margin-top: 20px;">Warm regards,<br/>The BlockFortune Team</p>
             <hr style="margin-top: 30px; border: none; border-top: 1px solid #eaeaea;" />
             <small style="color: #555;">This is an automated message. Do not reply directly to this email.</small>
@@ -199,17 +254,16 @@ export async function signUp({
         `,
       };
       
-
       await transporter.sendMail(mailOptions)
     } catch (emailError) {
       console.error('Failed to send welcome email:', emailError)
-      // Not critical, so we continue
     }
 
     return {
       user: authData.user,
       session: authData.session,
       referralCode,
+      referredBy: referredByUserId,
       message: 'Signup successful! Please check your email for confirmation.',
     }
 
