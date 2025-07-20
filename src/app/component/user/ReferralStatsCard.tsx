@@ -10,13 +10,25 @@ import {
   FaShareAlt, 
   FaUser, 
   FaCalendarAlt, 
-  
   FaArrowRight,
   FaPercentage
 } from 'react-icons/fa'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
- import { getReferralStats, getReferralList, withdrawReferralEarnings } from '@/lib/referral'
+import { getReferralStats, getReferralList, withdrawReferralEarnings } from '@/lib/referral'
 import { toast } from 'react-toastify'
+
+interface Referral {
+  id: string
+  referee_id: string
+  created_at: string
+  earned_amount: number
+  status: 'pending' | 'paid'
+  referee: {
+    username: string | null
+    email: string
+    created_at: string
+  }
+}
 
 export function ReferralDashboard() {
   const [stats, setStats] = useState<{
@@ -29,11 +41,11 @@ export function ReferralDashboard() {
     monthly_earnings: { month: string; earnings: number }[]
   } | null>(null)
   
-  const [referrals, setReferrals] = useState<any[]>([])
+  const [referrals, setReferrals] = useState<Referral[]>([])
   const [activeTab, setActiveTab] = useState<'stats' | 'list'>('stats')
   const [loading, setLoading] = useState({
     stats: true,
-    list: true,
+    list: false,
     withdraw: false
   })
 
@@ -52,7 +64,7 @@ export function ReferralDashboard() {
           setStats(statsData)
         }
       } catch (err) {
-        console.log(err)
+        console.error('Failed to load referral stats:', err)
         toast.error('Failed to load referral stats')
       } finally {
         setLoading(prev => ({ ...prev, stats: false }))
@@ -76,10 +88,17 @@ export function ReferralDashboard() {
         setReferrals(data)
       }
     } catch (err) {
-        console.log(err)
+      console.error('Failed to load referral list:', err)
       toast.error('Failed to load referral list')
     } finally {
       setLoading(prev => ({ ...prev, list: false }))
+    }
+  }
+
+  const handleTabChange = (tab: 'stats' | 'list') => {
+    setActiveTab(tab)
+    if (tab === 'list' && referrals.length === 0) {
+      fetchReferrals()
     }
   }
 
@@ -105,7 +124,7 @@ export function ReferralDashboard() {
         if (statsData) setStats(statsData)
       }
     } catch (err) {
-        console.log(err)
+      console.error('Failed to withdraw earnings:', err)
       toast.error('Failed to withdraw earnings')
     } finally {
       setLoading(prev => ({ ...prev, withdraw: false }))
@@ -150,7 +169,7 @@ export function ReferralDashboard() {
           <motion.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
-            onClick={() => setActiveTab('stats')}
+            onClick={() => handleTabChange('stats')}
             className={`px-4 py-2 rounded-lg ${activeTab === 'stats' ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-700'}`}
           >
             Statistics
@@ -158,10 +177,7 @@ export function ReferralDashboard() {
           <motion.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
-            onClick={() => {
-              setActiveTab('list')
-              if (referrals.length === 0) fetchReferrals()
-            }}
+            onClick={() => handleTabChange('list')}
             className={`px-4 py-2 rounded-lg ${activeTab === 'list' ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-700'}`}
           >
             Referral List

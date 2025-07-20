@@ -5,7 +5,8 @@ import Navbar from "./component/layout/Navbar"
 import Footer from "./component/layout/Footer"
 import LayoutVisibility from "./component/layout/LayoutVisibility"
 import FloatingDocButton from "./component/layout/FloatingDocButton"
- 
+ import SmartSuppScript from "./component/layout/SmartSuppScript"
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -39,7 +40,7 @@ export const metadata: Metadata = {
     siteName: "Blockfortune",
     images: [
       {
-        url: "https://blockfortune.it.com/opengraph-image.jpg", // make sure this exists or upload
+        url: "https://blockfortune.it.com/opengraph-image.jpg",
         width: 1200,
         height: 630,
         alt: "Blockfortune crypto investment platform",
@@ -58,6 +59,7 @@ export const metadata: Metadata = {
   },
 };
 
+// ... (previous imports remain the same)
 
 export default function RootLayout({
   children,
@@ -66,6 +68,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+      <SmartSuppScript />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <LayoutVisibility>
           <Navbar />
@@ -73,7 +78,9 @@ export default function RootLayout({
 
         {children}
 
-        <FloatingDocButton />
+        <div className="fixed bottom-6 left-6 z-50">
+          <FloatingDocButton   />
+        </div>
 
         <LayoutVisibility>
           <Footer />

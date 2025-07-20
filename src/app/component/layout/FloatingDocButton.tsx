@@ -19,7 +19,7 @@ export default function FloatingDocButton() {
   if (!visible) return null
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className=" ">
       <Link
         href="https://docs.google.com/document/d/15Hnu51-BX90Fjq0OyoX1u4Lx5R2MrJwW4LxwpGpvqQo/edit?tab=t.p4pwqbyuwzns"
         target="_blank"

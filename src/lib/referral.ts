@@ -12,29 +12,33 @@ type ReferralData = {
   created_at: string
   earned_amount: number
   status: 'pending' | 'paid'
+  referee: {
+    username: string | null
+    email: string
+    created_at: string
+  }
 }
 
 // Type for referral stats
 export interface ReferralStats {
-    total_referrals: number
-    active_referrals: number
-    total_earnings: number
-    pending_earnings: number
-    referral_code: string
-    referral_link: string
-    monthly_earnings: {
-      month: string
-      earnings: number
-    }[]
-  }
-  
+  total_referrals: number
+  active_referrals: number
+  total_earnings: number
+  pending_earnings: number
+  referral_code: string
+  referral_link: string
+  monthly_earnings: {
+    month: string
+    earnings: number
+  }[]
+}
 
 /**
  * Get referral statistics for the current user
  */
 export async function getReferralStats(): Promise<{ data?: ReferralStats, error?: string }> {
   try {
-    const cookieStore =await cookies()
+    const cookieStore = await cookies()
     const userId = cookieStore.get('user_id')?.value
 
     if (!userId) {
@@ -79,16 +83,52 @@ export async function getReferralStats(): Promise<{ data?: ReferralStats, error?
   }
 }
 
+export async function recordReferral(refereeId: string, referredCode: string) {
+  try {
+    // 1. Get direct referrer
+    const { data: referrer, error: referrerError } = await supabase
+      .from('blockfortuneprofile')
+      .select('id')
+      .eq('referral_code', referredCode)
+      .single()
+
+    if (referrerError || !referrer) {
+      console.error('Invalid referral code or error:', referrerError)
+      return { success: false, error: 'Invalid referral code' }
+    }
+
+    // 2. Create referral record
+    const { error: referralError } = await supabase
+      .from('blockfortunereferrals')
+      .insert({
+        referrer_id: referrer.id,
+        referee_id: refereeId,
+        earned_amount: 0,
+        status: 'pending'
+      })
+
+    if (referralError) {
+      console.error('Error creating referral:', referralError)
+      return { success: false, error: 'Failed to record referral' }
+    }
+  
+    return { success: true }
+  } catch (err) {
+    console.error('Unexpected error in recordReferral:', err)
+    return { success: false, error: 'An unexpected error occurred' }
+  }
+}
+
 /**
  * Get list of referrals for the current user
  */
 export async function getReferralList(): Promise<{ data?: ReferralData[], error?: string }> {
   try {
-    const cookieStore =await cookies()
-    const userId = cookieStore.get('user_id')?.value
+    const cookieStore = await cookies();
+    const userId = cookieStore.get('user_id')?.value;
 
     if (!userId) {
-      return { error: 'Not authenticated' }
+      return { error: 'Not authenticated' };
     }
 
     const { data: referrals, error } = await supabase
@@ -106,23 +146,36 @@ export async function getReferralList(): Promise<{ data?: ReferralData[], error?
         )
       `)
       .eq('referrer_id', userId)
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching referrals:', error)
-      return { error: 'Failed to fetch referral list' }
+      console.error('Error fetching referrals:', error);
+      return { error: 'Failed to fetch referral list' };
     }
 
-    return { data: referrals as ReferralData[] }
+    const formattedReferrals = referrals.map(ref => ({
+      id: ref.id,
+      referee_id: ref.referee_id,
+      created_at: ref.created_at,
+      earned_amount: ref.earned_amount,
+      status: ref.status,
+      referee: Array.isArray(ref.referee) ? ref.referee[0] : ref.referee || {
+        username: null,
+        email: 'unknown@email.com',
+        created_at: new Date().toISOString()
+      }
+    }));
+
+    return { data: formattedReferrals as ReferralData[] };
   } catch (err) {
-    console.error('Unexpected error in getReferralList:', err)
-    return { error: 'An unexpected error occurred' }
+    console.error('Unexpected error in getReferralList:', err);
+    return { error: 'An unexpected error occurred' };
   }
 }
 
+
 /**
  * Process referral earnings when a deposit is made
- * This should be called from your deposit approval function
  */
 export async function processReferralEarnings(
   depositId: string,
@@ -147,7 +200,7 @@ export async function processReferralEarnings(
       return { success: true }
     }
 
-    // 2. Get the investment plan for this deposit to determine referral percentage
+    // 2. Get the investment plan for this deposit
     const { data: deposit, error: depositError } = await supabase
       .from('blockfortunedeposits')
       .select('investment_plan_id')
@@ -171,7 +224,7 @@ export async function processReferralEarnings(
       return { success: false, error: 'Failed to process referral' }
     }
 
-    // 4. Calculate referral earnings (10% of deposit amount)
+    // 4. Calculate referral earnings
     const referralEarnings = amount * (plan.affiliate_commission / 100)
 
     // 5. Create referral record
@@ -213,7 +266,7 @@ export async function processReferralEarnings(
  */
 export async function withdrawReferralEarnings(): Promise<{ success: boolean, error?: string }> {
   try {
-    const cookieStore =await cookies()
+    const cookieStore = await cookies()
     const userId = cookieStore.get('user_id')?.value
 
     if (!userId) {
@@ -261,7 +314,7 @@ export async function withdrawReferralEarnings(): Promise<{ success: boolean, er
       return { success: false, error: 'Failed to complete withdrawal' }
     }
 
-    // 4. Add to user balance (or process payment)
+    // 4. Add to user balance
     const { error: balanceError } = await supabase.rpc('increment_user_balance', {
       user_id: userId,
       amount: stats.pending_earnings
