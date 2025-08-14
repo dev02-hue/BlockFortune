@@ -1,5 +1,4 @@
 'use server';
-
 import nodemailer from 'nodemailer';
 
 type ContactFormInput = {
@@ -8,6 +7,7 @@ type ContactFormInput = {
   email: string;
   message: string;
 };
+
 
 export async function sendContactEmail({
   firstName,
