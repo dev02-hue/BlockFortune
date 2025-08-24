@@ -66,6 +66,13 @@ export default function DashboardLayout({
       section: null
     },
     { 
+      name: 'Investment', 
+      path: '/user/investment-in', 
+      icon: <FiUser className="text-green-400" />,
+      section: null
+    },
+
+    { 
       name: 'Invite', 
       path: '/user/invite', 
       icon: <FaUserFriends className="text-green-400" />,
