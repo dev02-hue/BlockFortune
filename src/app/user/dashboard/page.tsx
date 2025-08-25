@@ -5,7 +5,6 @@ import { useEffect, useState, useCallback } from 'react'
 import { getUserData } from '@/lib/getUserData'
 import {
   ResponsiveContainer,
- 
   PieChart,
   Pie,
   AreaChart,
@@ -27,8 +26,8 @@ import {
   ReferenceLine
 } from 'recharts'
 import {
-  FiUser,   FiTrendingUp, FiPieChart  ,
-  FiRefreshCw, FiGlobe,   FiActivity,
+  FiUser, FiTrendingUp, FiPieChart,
+  FiRefreshCw, FiGlobe, FiActivity,
   FiBell
 } from 'react-icons/fi'
 import { FaBitcoin, FaEthereum } from 'react-icons/fa'
@@ -84,7 +83,7 @@ interface NewsItem {
   published_on: number
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D']
+const COLORS = ['#1E3A8A', '#F59E0B', '#3B82F6', '#10B981', '#8B5CF6', '#EF4444']
 
 export default function ProfessionalDashboard() {
   const [userData, setUserData] = useState<UserData | null>(null)
@@ -110,7 +109,7 @@ export default function ProfessionalDashboard() {
       const userResult = await getUserData()
       const depositsResult = await getTotalCompletedDeposits()
       const pendingWithdrawalsResult = await getTotalPendingWithdrawals()
-       const completedWithdrawalsResult = await getTotalCompletedWithdrawals()
+      const completedWithdrawalsResult = await getTotalCompletedWithdrawals()
       
       if (depositsResult.error) {
         console.error(depositsResult.error)
@@ -126,10 +125,8 @@ export default function ProfessionalDashboard() {
       if (completedWithdrawalsResult.error) {
         console.error(completedWithdrawalsResult.error)
       } else {
-        // Use this wherever you need completed withdrawals total
         setTotalCompletedWithdrawals(completedWithdrawalsResult.total || 0)
       }      
-
 
       if (userResult.error) throw new Error(userResult.error)
       if (userResult.user) {
@@ -223,10 +220,10 @@ export default function ProfessionalDashboard() {
 
   const getCryptoIcon = (symbol: string) => {
     switch (symbol.toLowerCase()) {
-      case 'btc': return <FaBitcoin className="text-orange-500" />
-      case 'eth': return <FaEthereum className="text-purple-500" />
+      case 'btc': return <FaBitcoin className="text-amber-500" />
+      case 'eth': return <FaEthereum className="text-indigo-500" />
       case 'ltc': return <SiLitecoin className="text-gray-500" />
-      case 'doge': return <SiDogecoin className="text-yellow-500" />
+      case 'doge': return <SiDogecoin className="text-amber-400" />
       case 'xrp': return <SiRipple className="text-blue-500" />
       default: return <FaBitcoin />
     }
@@ -234,11 +231,11 @@ export default function ProfessionalDashboard() {
 
   if (loading.user || loading.crypto || loading.forex) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center h-screen bg-gray-50">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full"
+          className="w-12 h-12 border-4 border-blue-700 border-t-transparent rounded-full"
         />
       </div>
     )
@@ -272,7 +269,7 @@ export default function ProfessionalDashboard() {
       <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl shadow-lg mb-4 p-4 text-white"
+        className="bg-gradient-to-r from-blue-900 to-blue-800 rounded-xl shadow-lg mb-4 p-4 text-white"
       >
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
           <div className="flex items-center mb-4 md:mb-0">
@@ -307,15 +304,15 @@ export default function ProfessionalDashboard() {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-white rounded-xl shadow-md p-4 lg:col-span-1"
+          className="bg-white rounded-xl shadow-md p-4 lg:col-span-1 border border-gray-200"
         >
-          <div className="flex justify-between text-black items-center mb-4">
-            <h2 className="text-lg font-semibold flex items-center">
-              <FiUser className="mr-2 text-blue-600" /> Portfolio Summary
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold flex items-center text-gray-800">
+              <FiUser className="mr-2 text-blue-700" /> Portfolio Summary
             </h2>
             <button 
               onClick={fetchData}
-              className="text-gray-500 hover:text-blue-600 transition-colors"
+              className="text-gray-500 hover:text-blue-700 transition-colors"
             >
               <FiRefreshCw size={16} />
             </button>
@@ -323,23 +320,23 @@ export default function ProfessionalDashboard() {
 
           {userData ? (
             <div className="space-y-4">
-              <div className="bg-blue-50 p-3 rounded-lg border-l-4 border-blue-500">
-                <p className="text-black text-xs">Total Balance</p>
-                <p className="text-xl font-bold text-blue-700">
+              <div className="bg-blue-50 p-3 rounded-lg border-l-4 border-blue-700">
+                <p className="text-gray-600 text-xs">Total Balance</p>
+                <p className="text-xl font-bold text-blue-800">
                   {formatCurrency(userData.balance)}
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-green-50 p-3 rounded-lg border-l-4 border-green-500">
-                  <p className="text-black text-xs">Active Deposit</p>
+                  <p className="text-gray-600 text-xs">Active Deposit</p>
                   <p className="text-lg font-bold text-green-700">
                     {formatCurrency(totalDeposits)}
                   </p>
                 </div>
 
-                <div className="bg-purple-50 text-black p-3 rounded-lg border-l-4 border-purple-500">
-                  <p className="text-black text-xs">Total Earned</p>
+                <div className="bg-purple-50 p-3 rounded-lg border-l-4 border-purple-500">
+                  <p className="text-gray-600 text-xs">Total Earned</p>
                   <p className="text-lg font-bold text-purple-700">
                     {formatCurrency(userData.earnedTotal)}
                   </p>
@@ -369,7 +366,7 @@ export default function ProfessionalDashboard() {
               </div>
             </div>
           ) : (
-            <div className="text-black text-center py-8">
+            <div className="text-gray-500 text-center py-8">
               No user data available
             </div>
           )}
@@ -380,18 +377,18 @@ export default function ProfessionalDashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-white rounded-xl shadow-md p-4 lg:col-span-2"
+          className="bg-white rounded-xl shadow-md p-4 lg:col-span-2 border border-gray-200"
         >
-          <div className="flex justify-between text-black  items-center mb-4">
-            <h2 className="text-lg font-semibold flex items-center">
-              <FiActivity className="mr-2 text-blue-600 " /> Market Overview
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold flex items-center text-gray-800">
+              <FiActivity className="mr-2 text-blue-700" /> Market Overview
             </h2>
             <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
               {['24h', '7d', '30d', '90d'].map((timeframe) => (
                 <button
                   key={timeframe}
                   onClick={() => setActiveTimeframe(timeframe)}
-                  className={`px-2 py-1 text-xs rounded-md ${activeTimeframe === timeframe ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-200'}`}
+                  className={`px-2 py-1 text-xs rounded-md ${activeTimeframe === timeframe ? 'bg-blue-700 text-white' : 'text-gray-600 hover:bg-gray-200'}`}
                 >
                   {timeframe}
                 </button>
@@ -405,25 +402,26 @@ export default function ProfessionalDashboard() {
               <AreaChart data={cryptoChartData}>
                 <defs>
                   <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#8884d8" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#1E3A8A" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#1E3A8A" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" />
-                <YAxis domain={['auto', 'auto']} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                <XAxis dataKey="name" stroke="#4B5563" />
+                <YAxis domain={['auto', 'auto']} stroke="#4B5563" />
                 <Tooltip 
                   formatter={(value) => formatCurrency(Number(value))}
                   labelFormatter={(label) => `${label} Price`}
+                  contentStyle={{ backgroundColor: '#1E293B', border: 'none', borderRadius: '0.5rem' }}
                 />
                 <Area 
                   type="monotone" 
                   dataKey="price" 
-                  stroke="#8884d8" 
+                  stroke="#1E3A8A" 
                   fillOpacity={1} 
                   fill="url(#colorPrice)" 
                 />
-                <ReferenceLine y={0} stroke="#000" />
+                <ReferenceLine y={0} stroke="#9CA3AF" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -431,12 +429,12 @@ export default function ProfessionalDashboard() {
           {/* Crypto Table */}
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="text-black">
+              <thead>
                 <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-black uppercase tracking-wider">Asset</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-black uppercase tracking-wider">Price</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-black uppercase tracking-wider">24h Change</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-black uppercase tracking-wider">Market Cap</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Asset</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Price</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">24h Change</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Market Cap</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -444,22 +442,22 @@ export default function ProfessionalDashboard() {
                   <motion.tr 
                     key={crypto.id}
                     whileHover={{ scale: 1.01 }}
-                    className="hover:bg-gray-50"
+                    className="hover:bg-blue-50 transition-colors"
                   >
-                    <td className="px-4 text-black py-3 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center">
                         <span className="mr-2">{getCryptoIcon(crypto.symbol)}</span>
-                        <span className="font-medium">{crypto.name}</span>
-                        <span className="text-black ml-1">{crypto.symbol.toUpperCase()}</span>
+                        <span className="font-medium text-gray-900">{crypto.name}</span>
+                        <span className="text-gray-500 ml-1">{crypto.symbol.toUpperCase()}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-black whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap text-gray-900">
                       {formatCurrency(crypto.current_price)}
                     </td>
                     <td className={`px-4 py-3 whitespace-nowrap ${crypto.price_change_percentage_24h >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {formatPercentage(crypto.price_change_percentage_24h)}
                     </td>
-                    <td className="px-4 py-3 text-black whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap text-gray-900">
                       {formatCurrency(crypto.market_cap)}
                     </td>
                   </motion.tr>
@@ -477,10 +475,10 @@ export default function ProfessionalDashboard() {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.4 }}
-          className="bg-white rounded-xl shadow-md p-4"
+          className="bg-white rounded-xl shadow-md p-4 border border-gray-200"
         >
-          <h2 className="text-lg text-black font-semibold flex items-center mb-4">
-            <TbCurrencyDollar className="mr-2 text-blue-600" /> Forex Rates
+          <h2 className="text-lg font-semibold flex items-center mb-4 text-gray-800">
+            <TbCurrencyDollar className="mr-2 text-blue-700" /> Forex Rates
           </h2>
           
           {forexData ? (
@@ -488,23 +486,26 @@ export default function ProfessionalDashboard() {
               <div className="h-48 mb-4">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart cx="50%" cy="50%" outerRadius="80%" data={forexChartData}>
-                    <PolarGrid />
-                    <PolarAngleAxis dataKey="currency" />
-                    <PolarRadiusAxis angle={30} domain={[0, 'dataMax + 0.2']} />
-                    <Radar name="Exchange Rate" dataKey="rate" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
-                    <Tooltip formatter={(value) => typeof value === 'number' ? value.toFixed(4) : value} />
+                    <PolarGrid stroke="#E5E7EB" />
+                    <PolarAngleAxis dataKey="currency" stroke="#4B5563" />
+                    <PolarRadiusAxis angle={30} domain={[0, 'dataMax + 0.2']} stroke="#4B5563" />
+                    <Radar name="Exchange Rate" dataKey="rate" stroke="#1E3A8A" fill="#1E3A8A" fillOpacity={0.6} />
+                    <Tooltip 
+                      formatter={(value) => typeof value === 'number' ? value.toFixed(4) : value}
+                      contentStyle={{ backgroundColor: '#1E293B', border: 'none', borderRadius: '0.5rem' }}
+                    />
                   </RadarChart>
                 </ResponsiveContainer>
               </div>
 
               <div className="space-y-2">
                 {forexChartData.map((pair, index) => (
-                  <div key={index} className="flex justify-between items-center p-2  text-black rounded-lg">
+                  <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
                     <div className="flex items-center">
-                      <span className="text-lg mr-2">{pair.icon}</span>
-                      <span className="font-medium">{pair.currency}</span>
+                      <span className="text-lg mr-2 text-amber-500">{pair.icon}</span>
+                      <span className="font-medium text-gray-800">{pair.currency}</span>
                     </div>
-                    <span className="font-mono">{pair.rate.toFixed(4)}</span>
+                    <span className="font-mono text-gray-900">{pair.rate.toFixed(4)}</span>
                   </div>
                 ))}
               </div>
@@ -521,10 +522,10 @@ export default function ProfessionalDashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="bg-white rounded-xl shadow-md p-4"
+          className="bg-white rounded-xl shadow-md p-4 border border-gray-200"
         >
-          <h2 className="text-lg text-black font-semibold flex items-center mb-4">
-            <FiTrendingUp className="mr-2 text-blue-600" /> Performance Metrics
+          <h2 className="text-lg font-semibold flex items-center mb-4 text-gray-800">
+            <FiTrendingUp className="mr-2 text-blue-700" /> Performance Metrics
           </h2>
           
           <div className="h-64">
@@ -532,16 +533,17 @@ export default function ProfessionalDashboard() {
               <ScatterChart
                 margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
               >
-                <CartesianGrid />
-                <XAxis type="number" dataKey="marketCap" name="Market Cap (B)" unit="B" />
-                <YAxis type="number" dataKey="change" name="24h Change" unit="%" />
+                <CartesianGrid stroke="#E5E7EB" />
+                <XAxis type="number" dataKey="marketCap" name="Market Cap (B)" unit="B" stroke="#4B5563" />
+                <YAxis type="number" dataKey="change" name="24h Change" unit="%" stroke="#4B5563" />
                 <Tooltip 
                   formatter={(value, name) => 
                     name === '24h Change' ? `${value}%` : `$${value}B`
                   }
+                  contentStyle={{ backgroundColor: '#1E293B', border: 'none', borderRadius: '0.5rem' }}
                 />
                 <Legend />
-                <Scatter name="Cryptocurrencies" data={cryptoChartData} fill="#8884d8">
+                <Scatter name="Cryptocurrencies" data={cryptoChartData} fill="#1E3A8A">
                   {cryptoChartData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
@@ -556,10 +558,10 @@ export default function ProfessionalDashboard() {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.6 }}
-          className="bg-white rounded-xl shadow-md p-4"
+          className="bg-white rounded-xl shadow-md p-4 border border-gray-200"
         >
-          <h2 className="text-lg text-black font-semibold flex items-center mb-4">
-            <FiPieChart className="mr-2 text-blue-600" /> Market Distribution
+          <h2 className="text-lg font-semibold flex items-center mb-4 text-gray-800">
+            <FiPieChart className="mr-2 text-blue-700" /> Market Distribution
           </h2>
           
           <div className="h-64">
@@ -572,10 +574,11 @@ export default function ProfessionalDashboard() {
                 dataKey="size"
                 aspectRatio={4/3}
                 stroke="#fff"
-                fill="#8884d8"
+                fill="#1E3A8A"
               >
                 <Tooltip 
                   formatter={(value) => formatCurrency(Number(value))}
+                  contentStyle={{ backgroundColor: '#1E293B', border: 'none', borderRadius: '0.5rem' }}
                 />
               </Treemap>
             </ResponsiveContainer>
@@ -588,10 +591,10 @@ export default function ProfessionalDashboard() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7 }}
-        className="bg-white rounded-xl shadow-md p-4"
+        className="bg-white rounded-xl shadow-md p-4 border border-gray-200"
       >
-        <h2 className="text-lg text-black font-semibold flex items-center mb-4">
-          <FiBell className="mr-2 text-blue-600" /> Latest Market News
+        <h2 className="text-lg font-semibold flex items-center mb-4 text-gray-800">
+          <FiBell className="mr-2 text-blue-700" /> Latest Market News
         </h2>
         
         <AnimatePresence>
@@ -607,10 +610,10 @@ export default function ProfessionalDashboard() {
                   target="_blank"
                   rel="noopener noreferrer"
                   whileHover={{ y: -5 }}
-                  className="border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow"
+                  className="border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow bg-gray-50 hover:bg-blue-50"
                 >
-                  <h3 className="font-medium text-black text-sm line-clamp-2 mb-2">{item.title}</h3>
-                  <p className="text-black text-xs flex items-center">
+                  <h3 className="font-medium text-gray-800 text-sm line-clamp-2 mb-2">{item.title}</h3>
+                  <p className="text-gray-600 text-xs flex items-center">
                     <span>{item.source}</span>
                     <span className="mx-1">•</span>
                     <span>{new Date(item.published_on * 1000).toLocaleDateString()}</span>

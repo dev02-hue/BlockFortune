@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiMenu, FiX, FiUser, FiSettings, FiHome, FiPieChart, FiDollarSign, FiCreditCard, FiShield, FiActivity, FiShoppingBag, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { FiMenu, FiX, FiUser, FiSettings, FiHome,  FiDollarSign, FiCreditCard, FiShield, FiActivity, FiShoppingBag, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import SignOutButton from '../component/user/SignOutButton';
 import { FaUserFriends } from 'react-icons/fa';
+
 
 export default function DashboardLayout({
   children,
@@ -56,77 +57,77 @@ export default function DashboardLayout({
     { 
       name: 'Dashboard', 
       path: '/user/dashboard', 
-      icon: <FiHome className="text-green-400" />,
+      icon: <FiHome className="text-amber-500" />,
       section: null
     },
     { 
       name: 'Profile', 
       path: '/user/profile', 
-      icon: <FiUser className="text-green-400" />,
+      icon: <FiUser className="text-amber-500" />,
       section: null
     },
     { 
       name: 'Investment', 
       path: '/user/investment-in', 
-      icon: <FiUser className="text-green-400" />,
+      icon: <FiUser className="text-amber-500" />,
       section: null
     },
 
     { 
       name: 'Invite', 
       path: '/user/invite', 
-      icon: <FaUserFriends className="text-green-400" />,
+      icon: <FaUserFriends className="text-amber-500" />,
       section: null
     },
     { 
       section: 'security',
       name: 'Security',
-      icon: <FiShield className="text-green-400" />,
+      icon: <FiShield className="text-amber-500" />,
       items: [
-        { name: 'Account Security', path: '/user/security', icon: <FiShield className="text-green-400" /> },
+        { name: 'Account Security', path: '/user/security', icon: <FiShield className="text-amber-500" /> },
       ]
     },
     { 
       section: 'financial',
       name: 'Financial',
-      icon: <FiDollarSign className="text-green-400" />,
+      icon: <FiDollarSign className="text-amber-500" />,
       items: [
-        { name: 'Deposit', path: '/user/deposit', icon: <FiDollarSign className="text-green-400" /> },
-        { name: 'Investment', path: '/user/investment', icon: <FiPieChart className="text-green-400" /> },
-        { name: 'Withdraw Profit', path: '/user/withdraw', icon: <FiDollarSign className="text-green-400" /> },
+        { name: 'Deposit', path: '/user/deposit', icon: <FiDollarSign className="text-amber-500" /> },
+         
+        { name: 'Withdraw Profit', path: '/user/withdraw', icon: <FiDollarSign className="text-amber-500" /> },
       ]
     },
     { 
       section: 'transactions',
       name: 'Transactions',
-      icon: <FiActivity className="text-green-400" />,
+      icon: <FiActivity className="text-amber-500" />,
       items: [
-        { name: 'Deposit History', path: '/user/deposit-history', icon: <FiCreditCard className="text-green-400" /> },
-        { name: 'Withdrawal History', path: '/user/withdrawal-history', icon: <FiActivity className="text-green-400" /> },
-        { name: 'All Transactions', path: '/user/transactions', icon: <FiActivity className="text-green-400" /> },
+        { name: 'Deposit History', path: '/user/deposit-history', icon: <FiCreditCard className="text-amber-500" /> },
+        { name: 'Withdrawal History', path: '/user/withdrawal-history', icon: <FiActivity className="text-amber-500" /> },
+        { name: 'All Transactions', path: '/user/transactions', icon: <FiActivity className="text-amber-500" /> },
       ]
     },
     { 
       name: 'Connect Wallet', 
       path: '/user/wallet', 
-      icon: <FiShoppingBag className="text-green-400" />,
+      icon: <FiShoppingBag className="text-amber-500" />,
       section: null
     },
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-black text-white relative">
+    <div className="min-h-screen flex flex-col bg-gray-50 text-gray-900 relative">
       {/* Navbar */}
-      <nav className="bg-black p-4 flex items-center justify-between border-b border-green-700 sticky top-0 z-30 shadow-lg">
+      <nav className="bg-navy-blue p-4 flex items-center justify-between border-b border-amber-500/30 sticky top-0 z-30 shadow-lg">
         <div className="flex items-center space-x-4">
           <button
             onClick={toggleSidebar}
-            className="text-white hover:text-green-400 transition-colors"
+            className="text-white hover:text-amber-400 transition-colors"
             aria-label="Toggle sidebar"
           >
             {isSidebarOpen ? <FiX size={24} /> : <FiMenu size={24} />}
           </button>
-          <h1 className="text-xl font-bold bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
+          <h1 className="text-xl font-bold text-white">
             BlockFortune
           </h1>
         </div>
@@ -137,7 +138,7 @@ export default function DashboardLayout({
             className="flex items-center space-x-2 focus:outline-none group"
             aria-label="User profile"
           >
-            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-green-600 to-green-800 flex items-center justify-center group-hover:from-green-500 group-hover:to-green-700 transition-all">
+            <div className="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center group-hover:bg-amber-400 transition-all shadow-md">
               <FiUser size={20} className="text-white" />
             </div>
           </button>
@@ -148,28 +149,28 @@ export default function DashboardLayout({
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="absolute right-0 mt-2 w-56 bg-black rounded-md shadow-lg z-50 border border-green-700"
+                className="absolute right-0 mt-2 w-56 bg-navy-blue rounded-md shadow-lg z-50 border border-amber-500/30"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="py-1">
                   <Link
                     href="/user/profile"
-                    className="px-4 py-3 text-sm hover:bg-green-900 hover:bg-opacity-50 transition-colors flex items-center space-x-2 text-white"
+                    className="px-4 py-3 text-sm hover:bg-amber-500/20 transition-colors flex items-center space-x-2 text-white"
                     onClick={() => setIsProfileDropdownOpen(false)}
                   >
-                    <FiUser size={16} className="text-green-400" />
+                    <FiUser size={16} className="text-amber-400" />
                     <span>Profile</span>
                   </Link>
                   <Link
                     href="/user/security"
-                    className="px-4 py-3 text-sm hover:bg-green-900 hover:bg-opacity-50 transition-colors flex items-center space-x-2 text-white"
+                    className="px-4 py-3 text-sm hover:bg-amber-500/20 transition-colors flex items-center space-x-2 text-white"
                     onClick={() => setIsProfileDropdownOpen(false)}
                   >
-                    <FiSettings size={16} className="text-green-400" />
+                    <FiSettings size={16} className="text-amber-400" />
                     <span>Settings</span>
                   </Link>
-                  <div className="border-t border-green-800 mt-2 pt-2">
-                    <SignOutButton className="w-full text-left px-4 py-3 text-sm hover:bg-green-900 hover:bg-opacity-50 transition-colors flex items-center space-x-2 text-white" />
+                  <div className="border-t border-amber-500/30 mt-2 pt-2">
+                    <SignOutButton className="w-full text-left px-4 py-3 text-sm hover:bg-amber-500/20 transition-colors flex items-center space-x-2 text-white" />
                   </div>
                 </div>
               </motion.div>
@@ -200,7 +201,7 @@ export default function DashboardLayout({
               animate="open"
               exit="closed"
               variants={sidebarVariants}
-              className={`fixed md:relative h-full w-64 bg-black flex-shrink-0 overflow-hidden border-r border-green-700 z-30`}
+              className={`fixed md:relative h-full w-64 bg-navy-blue flex-shrink-0 overflow-hidden border-r border-amber-500/30 z-30`}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             >
               <div className="h-full overflow-y-auto py-6 px-3">
@@ -212,16 +213,16 @@ export default function DashboardLayout({
                           <div className="mb-1">
                             <button
                               onClick={() => toggleSection(item.section!)}
-                              className="w-full flex items-center justify-between p-3 rounded-lg transition-colors hover:bg-green-900 hover:bg-opacity-50 text-white"
+                              className="w-full flex items-center justify-between p-3 rounded-lg transition-colors hover:bg-amber-500/20 text-white"
                             >
                               <div className="flex items-center">
                                 <span className="mr-3">{item.icon}</span>
                                 <span>{item.name}</span>
                               </div>
                               {expandedSections[item.section] ? (
-                                <FiChevronUp size={18} className="text-green-400" />
+                                <FiChevronUp size={18} className="text-amber-400" />
                               ) : (
-                                <FiChevronDown size={18} className="text-green-400" />
+                                <FiChevronDown size={18} className="text-amber-400" />
                               )}
                             </button>
                             
@@ -239,8 +240,8 @@ export default function DashboardLayout({
                                         href={subItem.path}
                                         className={`flex items-center p-3 rounded-lg transition-colors ${
                                           pathname === subItem.path
-                                            ? 'bg-green-900 text-white'
-                                            : 'hover:bg-green-900 hover:bg-opacity-50 text-gray-300'
+                                            ? 'bg-amber-500/30 text-white'
+                                            : 'hover:bg-amber-500/20 text-gray-200'
                                         }`}
                                       >
                                         <span className="mr-3">{subItem.icon}</span>
@@ -257,8 +258,8 @@ export default function DashboardLayout({
                             href={item.path!}
                             className={`flex items-center p-3 rounded-lg transition-colors ${
                               pathname === item.path
-                                ? 'bg-green-900 text-white'
-                                : 'hover:bg-green-900 hover:bg-opacity-50 text-gray-300'
+                                ? 'bg-amber-500/30 text-white'
+                                : 'hover:bg-amber-500/20 text-gray-200'
                             }`}
                           >
                             <span className="mr-3">{item.icon}</span>
@@ -275,14 +276,37 @@ export default function DashboardLayout({
         </AnimatePresence>
 
         {/* Main Content */}
-        <main className={`flex-1 overflow-y-auto bg-gradient-to-br from-black to-gray-900 transition-all duration-300 ${
+        <main className={`flex-1 overflow-y-auto bg-gray-50 transition-all duration-300 ${
           isSidebarOpen ? ' ' : ''
         }`}>
-          <div className=" ">
+          <div className="p-6">
             {children}
           </div>
         </main>
       </div>
+      
+      <style jsx global>{`
+        :root {
+          --navy-blue: #1E3A8A;
+          --gold: #F59E0B;
+        }
+        
+        .bg-navy-blue {
+          background-color: #1E3A8A;
+        }
+        
+        .text-navy-blue {
+          color: #1E3A8A;
+        }
+        
+        .bg-gold {
+          background-color: #F59E0B;
+        }
+        
+        .text-gold {
+          color: #F59E0B;
+        }
+      `}</style>
     </div>
   );
 }
