@@ -19,7 +19,7 @@ import {
   FiUpload,
   FiLink
 } from 'react-icons/fi'
-import { EditableProfileFields, UserProfile } from '@/type/type'
+import { UserProfile } from '@/type/type'
 import { getAllUserData, updateUserProfile } from '@/lib/getUserData'
 
 export default function UserManagementTable() {
@@ -112,13 +112,27 @@ export default function UserManagementTable() {
     setEditForm({})
   }
 
-  // Handle save
+  // Handle save - FIXED: Now passes userId as first argument
   const saveEdit = async () => {
     if (!editingId) return
 
     setLoading(true)
     try {
-      const updates: EditableProfileFields = {
+      const updates: Partial<{
+        firstName?: string;
+        lastName?: string;
+        email?: string;
+        balance?: number;
+        pendingWithdrawal?: number;
+        activeDeposit?: number;
+        withdrawalTotal?: number;
+        earnedTotal?: number;
+        usdtTrc20Address?: string;
+        btcAddress?: string;
+        usdtErc20Address?: string;
+        ethAddress?: string;
+        bnbAddress?: string;
+      }> = {
         firstName: editForm.firstName,
         lastName: editForm.lastName,
         email: editForm.email,
@@ -134,7 +148,8 @@ export default function UserManagementTable() {
         bnbAddress: editForm.bnbAddress
       }
 
-      const response = await updateUserProfile(updates)
+      // FIXED: Pass userId as first argument
+      const response = await updateUserProfile(editingId, updates)
       if (response.error) {
         throw new Error(response.error)
       }
@@ -524,7 +539,7 @@ export default function UserManagementTable() {
                                   className="border border-gray-300 rounded px-2 py-1 w-full"
                                 />
                               ) : (
-                                <div className="text-sm text-gray-900 break-all">
+                                <div className="text极 text-gray-900 break-all">
                                   {user.bnbAddress || 'Not set'}
                                 </div>
                               )}
