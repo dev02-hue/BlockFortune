@@ -24,23 +24,7 @@ type UserProfile = {
   bnbAddress: string
   createdAt?: string
 }
-
-type EditableProfileFields = {
-  firstName?: string
-  lastName?: string
-  username?: string
-  email?: string
-  pendingWithdrawal?: number
-  activeDeposit?: number
-  withdrawalTotal?: number
-  earnedTotal?: number
-  balance?: number
-  usdtTrc20Address?: string
-  btcAddress?: string
-  usdtErc20Address?: string
-  ethAddress?: string
-  bnbAddress?: string
-}
+ 
 
 type ApiResponse<T> = {
   data?: T
@@ -243,14 +227,27 @@ export async function getAllUserData(
 }
 
 export async function updateUserProfile(
-  updates: EditableProfileFields
+  userId: string, // Accept userId as parameter since getAllUserData is for admin purposes
+  updates: Partial<{
+    firstName?: string
+    lastName?: string
+    username?: string
+    email?: string
+    pendingWithdrawal?: number
+    activeDeposit?: number
+    withdrawalTotal?: number
+    earnedTotal?: number
+    balance?: number
+    usdtTrc20Address?: string
+    btcAddress?: string
+    usdtErc20Address?: string
+    ethAddress?: string
+    bnbAddress?: string
+  }>
 ): Promise<ApiResponse<{ success: boolean; message: string }>> {
   try {
-    const cookieStore = await cookies()
-    const userId = cookieStore.get('user_id')?.value
-
     if (!userId) {
-      return { error: 'Not authenticated. Please log in again.' }
+      return { error: 'User ID is required' }
     }
 
     // Validate at least one field is being updated
@@ -258,7 +255,7 @@ export async function updateUserProfile(
       return { error: 'No fields provided for update' }
     }
 
-    // Prepare update data mapping between frontend and database field names
+    // Prepare update data mapping
     const updateData: Record<string, any> = {}
 
     // Financial fields
@@ -299,62 +296,88 @@ export async function updateUserProfile(
 
     // Crypto address fields
     if (updates.usdtTrc20Address !== undefined) {
-      if (typeof updates.usdtTrc20Address !== 'string') {
-        return { error: 'USDT TRC20 address must be a string' }
-      }
       updateData.usdt_trc20_address = updates.usdtTrc20Address.trim()
     }
     
     if (updates.btcAddress !== undefined) {
-      if (typeof updates.btcAddress !== 'string') {
-        return { error: 'BTC address must be a string' }
-      }
       updateData.btc_address = updates.btcAddress.trim()
     }
     
     if (updates.usdtErc20Address !== undefined) {
-      if (typeof updates.usdtErc20Address !== 'string') {
-        return { error: 'USDT ERC20 address must be a string' }
-      }
       updateData.usdt_erc20_address = updates.usdtErc20Address.trim()
     }
     
     if (updates.ethAddress !== undefined) {
-      if (typeof updates.ethAddress !== 'string') {
-        return { error: 'ETH address must be a string' }
-      }
       updateData.eth_address = updates.ethAddress.trim()
     }
     
     if (updates.bnbAddress !== undefined) {
-      if (typeof updates.bnbAddress !== 'string') {
-        return { error: 'BNB address must be a string' }
-      }
       updateData.bnb_address = updates.bnbAddress.trim()
     }
 
-    // Personal info fields
+    // Personal info fields - with unique constraint validation
     if (updates.firstName !== undefined) {
       updateData.first_name = updates.firstName
     }
+    
     if (updates.lastName !== undefined) {
       updateData.last_name = updates.lastName
     }
+    
     if (updates.username !== undefined) {
+      // Check if username already exists for another user
+      const { data: existingUsername } = await supabase
+        .from('blockfortuneprofile')
+        .select('id')
+        .eq('username', updates.username)
+        .neq('id', userId)
+        .single()
+      
+      if (existingUsername) {
+        return { error: 'Username already exists for another user' }
+      }
       updateData.username = updates.username
     }
+    
     if (updates.email !== undefined) {
+      // Check if email already exists for another user
+      const { data: existingEmail } = await supabase
+        .from('blockfortuneprofile')
+        .select('id')
+        .eq('email', updates.email)
+        .neq('id', userId)
+        .single()
+      
+      if (existingEmail) {
+        return { error: 'Email already exists for another user' }
+      }
       updateData.email = updates.email
     }
 
-    const { error } = await supabase
+    // Perform the update
+    const { error, count } = await supabase
       .from('blockfortuneprofile')
       .update(updateData)
       .eq('id', userId)
 
     if (error) {
       console.error('Update error:', error)
+      
+      // Handle specific constraint violations
+      if (error.code === '23505') {
+        if (error.message.includes('email')) {
+          return { error: 'Email already exists for another user' }
+        } else if (error.message.includes('username')) {
+          return { error: 'Username already exists for another user' }
+        }
+        return { error: 'A unique constraint violation occurred' }
+      }
+      
       return { error: error.message || 'Failed to update profile' }
+    }
+
+    if (count === 0) {
+      return { error: 'User not found or no changes made' }
     }
 
     return {
@@ -363,6 +386,7 @@ export async function updateUserProfile(
         message: 'Profile updated successfully'
       }
     }
+
   } catch (err) {
     console.error('Unexpected error in updateUserProfile:', err)
     return { error: 'An unexpected error occurred. Please try again.' }
