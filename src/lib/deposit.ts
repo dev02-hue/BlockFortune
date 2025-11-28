@@ -727,27 +727,44 @@ export async function getTotalCompletedWithdrawals() {
 }
 
 export async function approveBlockFortuneWithdrawal(withdrawalId: string) {
+  console.log('🚀 APPROVE WITHDRAWAL FUNCTION STARTED');
+  console.log('📝 Withdrawal ID:', withdrawalId);
+  
   try {
     // 1. Fetch withdrawal record
+    console.log('🔍 Step 1: Fetching withdrawal record...');
     const { data: withdrawal, error: fetchError } = await supabase
       .from('blockfortunewithdrawals')
       .select('*')
       .eq('id', withdrawalId)
       .single()
 
+    console.log('📊 Withdrawal fetch result:', { withdrawal, fetchError });
+
     if (fetchError || !withdrawal) {
-      console.error('Withdrawal fetch failed:', fetchError)
+      console.error('❌ Withdrawal fetch failed:', fetchError);
+      console.log('📝 Withdrawal data:', withdrawal);
       return { error: 'Withdrawal not found' }
     }
 
+    console.log('✅ Withdrawal found:', {
+      id: withdrawal.id,
+      status: withdrawal.status,
+      user_id: withdrawal.user_id,
+      amount: withdrawal.amount,
+      crypto_type: withdrawal.crypto_type
+    });
+
     if (withdrawal.status !== 'pending') {
+      console.log('⚠️ Withdrawal already processed. Current status:', withdrawal.status);
       return { 
         error: 'Withdrawal already processed',
         currentStatus: withdrawal.status 
       }
     }
 
-    // 2. Update withdrawal status to completed (trigger will handle balance deduction)
+    // 2. Update withdrawal status to completed
+    console.log('🔄 Step 2: Updating withdrawal status to completed...');
     const { error: updateError } = await supabase
       .from('blockfortunewithdrawals')
       .update({
@@ -756,21 +773,55 @@ export async function approveBlockFortuneWithdrawal(withdrawalId: string) {
       })
       .eq('id', withdrawalId)
 
+    console.log('📊 Withdrawal update result:', { updateError });
+
     if (updateError) {
-      console.error('Withdrawal update failed:', updateError)
+      console.error('❌ Withdrawal update failed:', updateError);
       return { error: 'Failed to complete withdrawal' }
     }
 
-    // 3. Get user details for email (matching deposit logic pattern)
+    console.log('✅ Withdrawal status updated to completed');
+
+    // 3. Get user details for email
+    console.log('👤 Step 3: Fetching user details for email...');
+    console.log('📝 User ID to fetch:', withdrawal.user_id);
+    
     const { data: user, error: userError } = await supabase
-      .from('users')
+      .from('blockfortuneprofile')
       .select('email, first_name, username')
       .eq('id', withdrawal.user_id)
       .single();
 
-    // 4. Send approval email if user exists (using same style as deposit emails)
+    console.log('📊 User fetch result:', { user, userError });
+
+    // 4. Send approval email if user exists
+    if (userError) {
+      console.error('❌ User fetch error:', userError);
+      console.log('📝 User data that was found:', user);
+    }
+
     if (!userError && user?.email) {
+      console.log('📧 Step 4: Preparing to send email...');
+      console.log('📝 User email found:', user.email);
+      console.log('📝 User details:', {
+        first_name: user.first_name,
+        username: user.username,
+        email: user.email
+      });
+
+      // Check environment variables
+      console.log('🔐 Checking email environment variables...');
+      console.log('📝 EMAIL_USERNAME exists:', !!process.env.EMAIL_USERNAME);
+      console.log('📝 EMAIL_PASSWORD exists:', !!process.env.EMAIL_PASSWORD);
+      console.log('📝 EMAIL_FROM exists:', !!process.env.EMAIL_FROM);
+      
+      // Log actual values (be careful with this in production)
+      console.log('🔍 EMAIL_USERNAME value:', process.env.EMAIL_USERNAME ? '***' + process.env.EMAIL_USERNAME.slice(-3) : 'undefined');
+      console.log('🔍 EMAIL_PASSWORD value:', process.env.EMAIL_PASSWORD ? '***' + process.env.EMAIL_PASSWORD.slice(-3) : 'undefined');
+      console.log('🔍 EMAIL_FROM value:', process.env.EMAIL_FROM);
+
       try {
+        console.log('📨 Creating email transporter...');
         const transporter = nodemailer.createTransport({
           service: 'gmail',
           auth: {
@@ -778,6 +829,8 @@ export async function approveBlockFortuneWithdrawal(withdrawalId: string) {
             pass: process.env.EMAIL_PASSWORD,
           },
         });
+
+        console.log('✅ Email transporter created');
 
         const mailOptions = {
           from: process.env.EMAIL_FROM || 'BlockFortune <noreply@blockfortune.com>',
@@ -809,22 +862,68 @@ export async function approveBlockFortuneWithdrawal(withdrawalId: string) {
           `,
         };
 
-        await transporter.sendMail(mailOptions);
+        console.log('✉️ Mail options prepared:', {
+          from: mailOptions.from,
+          to: mailOptions.to,
+          subject: mailOptions.subject
+        });
+
+        console.log('📤 Attempting to send email...');
+        const emailResult = await transporter.sendMail(mailOptions);
+        console.log('✅ Email sent successfully!');
+        console.log('📊 Email response:', {
+          messageId: emailResult.messageId,
+          response: emailResult.response,
+          accepted: emailResult.accepted,
+          rejected: emailResult.rejected
+        });
+
       } catch (emailError) {
-        console.error('Failed to send withdrawal approval email:', emailError);
+        console.error('❌ FAILED TO SEND WITHDRAWAL APPROVAL EMAIL:', emailError);
+        // Safely extract error properties from unknown
+        const emailErrorInfo = (emailError instanceof Error)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ? { name: emailError.name, message: emailError.message, stack: emailError.stack, code: (emailError as any).code }
+          : { name: 'UnknownError', message: String(emailError), stack: undefined, code: undefined };
+        console.error('📝 Email error details:', emailErrorInfo);
+        
+        // Test email configuration
+        console.log('🔧 Testing email configuration...');
+        if (process.env.EMAIL_USERNAME && process.env.EMAIL_PASSWORD) {
+          console.log('✅ Email credentials are present');
+        } else {
+          console.error('❌ Email credentials are missing!');
+          console.log('📝 EMAIL_USERNAME:', process.env.EMAIL_USERNAME);
+          console.log('📝 EMAIL_PASSWORD:', process.env.EMAIL_PASSWORD ? '***' : 'undefined');
+        }
+        
         // Don't fail the operation if email fails
+        console.log('⚠️ Continuing withdrawal approval despite email failure');
       }
+    } else {
+      console.log('❌ Cannot send email - user or email not found');
+      console.log('📝 User error:', userError);
+      console.log('📝 User data:', user);
+      console.log('📝 User email exists:', !!user?.email);
     }
 
+    console.log('🎉 Withdrawal approval process completed successfully');
     return { 
       success: true,
       withdrawalId,
       userId: withdrawal.user_id,
-      amount: withdrawal.amount
+      amount: withdrawal.amount,
+      emailSent: !userError && !!user?.email
     }
   } catch (err) {
-    console.error('Unexpected error in approveBlockFortuneWithdrawal:', err)
+    console.error('💥 UNEXPECTED ERROR IN APPROVE BLOCK FORTUNE WITHDRAWAL:', err);
+    const errorInfo = err instanceof Error
+      ? { name: err.name, message: err.message, stack: err.stack }
+      : { name: 'UnknownError', message: String(err), stack: undefined };
+    console.error('📝 Error details:', errorInfo);
     return { error: 'An unexpected error occurred. Please try again.' }
+  } finally {
+    console.log('🏁 APPROVE WITHDRAWAL FUNCTION COMPLETED');
   }
 }
 
